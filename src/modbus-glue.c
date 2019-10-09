@@ -301,7 +301,6 @@ static int ModbusSensorEventCreate (ModbusSensorT *sensor, json_object **respons
 
         TimerEvtStart (sensor->api, sensor->timer, ModbusTimerCallback, mbEvtHandle);
     } 
-
     return 0;
 
 OnErrorExit:

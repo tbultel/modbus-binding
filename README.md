@@ -37,13 +37,29 @@ By default Kingpigeon devices use a fix IP addr (192.168.1.110). You may need to
 ```
 sudo ip a add  192.168.1.1/24 dev eth0 # eth0 or whatever is your ethernet card name
 ping 192.168.1.110 # check you can ping your TCP modbus device
-check config with a browser at http://192.168.1.110
+check default config with browser at http://192.168.1.110
 ```
 
+### Start Sample Binder
+```
+afb-daemon --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --token= --verbose
+open binding UI with browser at localhost:1234
+```
 
-## Modbus binding is an custom instance of the AGL controller, it uses a standard JSON file to describe Modbus network and sensors topologie.
+### Adding your own config
 
-    * see config sample at: cond.d/project/etc/*
+Json config file is selected from *afb-daemon --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is use to select a specific config. As example *--name='afb-mt110@lorient-modbus'* will select *modbus-mt110@lorient-config.json*.
+
+You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environement variable. For further information, check AGL controller documentation [here](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controllerConfig.html)
+
+**Warning:** some TCP Modbus device as KingPigeon check SalveID even for buildin I/O. Generic config make the assumption that your slaveID is set to *'1'*. 
+
+ 
+```
+export CONTROL_CONFIG_PATH="$HOME/my-agl-config"
+afb-daemon --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --token= --verbose
+```
+
 
 ## Modbus binding support a set of default encoder for values store within multiple registries. 
 
@@ -61,11 +77,14 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
     "modbus": [
       {
         "uid": "King-Pigeon-MT110",
-        "info": "King Pigeon 'MT110' Modbus TCP Remote I/O Module",
+        "info": "King Pigeon TCP I/O Module",
         "uri" : "tcp://192.168.1.110:502",
         "privilege": "global RTU requiered privilege",
-        "autostart" : 1,
-        "prefix": "mt110
+        "autostart" : 1,  // connect to RTU at binder start
+        "prefix": "mt110  // api verb prefix 
+        "timeout": xxxx // optionnal response timeout in ms
+        "debug": 0-3 // option libmodbus debug level
+        "hertz": 10  // default pooling for event subscription 
         "sensors": [
           {
             "uid": "PRODUCT_INFO",
@@ -76,25 +95,41 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
             "privilege": "optionnal sensor required privilege"
           },
           {
-            "uid": "D01_switch",
-            "function": "Single_Coil",
+            "uid": "DIN01_switch",
+            "function": "Coil_input",
             "format" : "BOOL",
             "register" : 1,
             "privilege": "optionnal sensor required privilege"
+            "herz": xxx // special pooling rate for this sensor 
+          },
+          {
+            "uid": "DIN01_counter",
+            "function": "Register_Holding",
+            "format" : "UINT32",
+            "register" : 6,
+            "privilege": "optionnal sensor required privilege"
+            "herz": xxx // special pooling rate for this sensor 
           },
     ...      
 ```
 
-Modbus controller will expose two sensors api/verb and one introspection verb
-    * api://modbus/mt110/info (depending on verbosity return sensors list + values)
-    * api://modbus/mt110/product_info
-    * api://modbus/mt110/d01_switch
+## Modbus controller exposed
 
-For each sensors the API accept 3 actions
+### Two builtin api/verb 
+
+  * api://modbus/ping // check if binder is alive
+  * api://modbus/info // return registered MTU
+
+### One instropection api/verb per declared RTU
+    * api://modbus/mt110/info
+
+### On action api/verb per declared Sensor    
+    * api://modbus/mt110/din01_switch
+    * api://modbus/mt110/din01_counter
+    * etc ...
+
+### For each sensors the API accept 3 actions
     * action=read (return register(s) value after format decoding)
     * action=write (push value on register(s) after format encoding)
     * action=subscribe (sucribe to sensors value changes, frequency is defined by sensor or gloablly at RTU level)
 
-Mosbus also expose two extra api/verb for test/config management
-    * api://modbus/ping (check is modbus binding is alive)
-    * api://modbus/info (depending on verbosity return RTU list + sensors)
