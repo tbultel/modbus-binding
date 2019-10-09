@@ -22,9 +22,10 @@
 	<div>
 		<button onclick="callbinder('modbus','ping' ,{});">Send ping</button></li>
 
-		<button onclick="callbinder('modbus','info' ,{'verbose':1});">Get RTU list</button></li>
+		<button onclick="callbinder('modbus','info' ,{'verbose':2});">Get RTU list</button></li>
 
-		<button onclick="callbinder('modbus','mt110/product_info' ,{'action':'read'});">Get MT110 product info</button></li>
+		<button onclick="callbinder('modbus','mt110/product_info' ,{'action':'read'});">Get MT110 product id</button></li>
+		<button onclick="callbinder('modbus','mt110/admin' ,{'action':'info','verbose':'1'});">Get MT110 I/O info</button></li>
 
 		<button onclick="callbinder('modbus','mt110/DIN01_STATUS' ,{'action':'read'});">Read DIN1 Status</button></li>
 		<button onclick="callbinder('modbus','mt110/DIN01_COUNTER' ,{'action':'read'});">Read DIN1 counter</button></li>

@@ -45,17 +45,18 @@ static CtlSectionT ctrlSections[] = {
 
 static void PingTest (afb_req_t request) {
     static int count=0;
+    char response[32];
     json_object *queryJ =  afb_req_json(request);
 
-    count++;
+    snprintf (response, sizeof(response), "Pong=%d", count++);
     AFB_API_NOTICE (request->api, "Modbus:ping count=%d query=%s", count, json_object_get_string(queryJ));
-    afb_req_success(request,json_object_new_int(count), NULL);
+    afb_req_success_f(request,json_object_new_string(response), NULL);
 
     return;
 }
 
 static void InfoRtu (afb_req_t request) {
-    json_object *elemJ, *slaveidJ;
+    json_object *elemJ;
     int err, idx;
     int verbose=0;
     int length =0;
@@ -80,11 +81,11 @@ static void InfoRtu (afb_req_t request) {
                 wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);
                 break;
             case 2:
-                err= ModbusRtuSlaveId (&rtus[idx], length, &slaveidJ);
-                if (err) {
-                   wrap_json_pack (&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "connected", 0);;
+                err= ModbusRtuIsConnected (request->api, &rtus[idx]);
+                if (err <0) {
+                    wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);;
                 } else {
-                   wrap_json_pack (&elemJ, "{ss ss ss sb so}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "connected", 1, "slaveid", slaveidJ);;
+                    wrap_json_pack (&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "connected", err);;
                 }
                 break;
         }
@@ -107,12 +108,11 @@ static afb_verb_t CtrlApiVerbs[] = {
     { .verb = NULL} /* marker for end of the array */
 };
 
-static int CtrlLoadStaticVerbs (afb_api_t api, afb_verb_t *verbs) {
+static int CtrlLoadStaticVerbs (afb_api_t api, afb_verb_t *verbs, void *vcbdata) {
     int errcount=0;
 
     for (int idx=0; verbs[idx].verb; idx++) {
-        errcount+= afb_api_add_verb(api, CtrlApiVerbs[idx].verb, CtrlApiVerbs[idx].info, CtrlApiVerbs[idx].callback, (void*)&CtrlApiVerbs[idx], 0, 0,0);
-
+        errcount+= afb_api_add_verb(api, CtrlApiVerbs[idx].verb, CtrlApiVerbs[idx].info, CtrlApiVerbs[idx].callback, vcbdata, 0, 0,0);
     }
 
     return errcount;
@@ -202,7 +202,6 @@ OnErrorExit:
 static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     int err = 0;
     json_object *sensorsJ;
-    ModbusSensorT *sensors;
     afb_auth_t *authent=NULL;
     char *adminCmd;
 
@@ -261,17 +260,17 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     // loop on sensors
     if (json_object_is_type(sensorsJ, json_type_array)) {
         int count = (int)json_object_array_length(sensorsJ);
-        sensors= (ModbusSensorT*)calloc(count + 1, sizeof (ModbusSensorT));
+        rtu->sensors= (ModbusSensorT*)calloc(count + 1, sizeof (ModbusSensorT));
 
         for (int idx = 0; idx < count; idx++) {
             json_object *sensorJ = json_object_array_get_idx(sensorsJ, idx);
-            err = SensorLoadOne(api, rtu, &sensors[idx], sensorJ);
+            err = SensorLoadOne(api, rtu, &rtu->sensors[idx], sensorJ);
             if (err) goto OnErrorExit;
         }
 
     } else {
-        sensors= (ModbusSensorT*) calloc(2, sizeof(ModbusSensorT));
-        err= SensorLoadOne(api, rtu, &sensors[0], sensorsJ);
+        rtu->sensors= (ModbusSensorT*) calloc(2, sizeof(ModbusSensorT));
+        err= SensorLoadOne(api, rtu, &rtu->sensors[0], sensorsJ);
         if (err) goto OnErrorExit;
     }
 
@@ -305,6 +304,14 @@ static int ModbusConfig(afb_api_t api, CtlSectionT *section, json_object *rtusJ)
         if (err) goto OnErrorExit;
     }
 
+
+    // add static controls verbs
+    err = CtrlLoadStaticVerbs (api, CtrlApiVerbs, (void*) rtus);
+    if (err) {
+        AFB_API_ERROR(api, "CtrlLoadOneApi fail to Registry static API verbs");
+        goto OnErrorExit;
+    }
+    
     return 0;
 
 OnErrorExit:
@@ -318,6 +325,7 @@ static int CtrlInitOneApi(afb_api_t api) {
 
     // retrieve section config from api handle
     CtlConfigT* ctrlConfig = (CtlConfigT*)afb_api_get_userdata(api);
+
     err = CtlConfigExec(api, ctrlConfig);
     if (err) {
         AFB_API_ERROR(api, "Error at CtlConfigExec step");
@@ -327,28 +335,20 @@ static int CtrlInitOneApi(afb_api_t api) {
     return err;
 }
 
-static int CtrlLoadOneApi(void* cbdata, afb_api_t api) {
-    CtlConfigT* ctrlConfig = (CtlConfigT*)cbdata;
+static int CtrlLoadOneApi(void* vcbdata, afb_api_t api) {
+    CtlConfigT* ctrlConfig = (CtlConfigT*)vcbdata;
 
     // save closure as api's data context
     afb_api_set_userdata(api, ctrlConfig);
 
-    // add static controls verbs
-    int error = CtrlLoadStaticVerbs (api, CtrlApiVerbs);
-    if (error) {
-        AFB_API_ERROR(api, "CtrlLoadOneApi fail to Registry static API verbs");
-        goto OnErrorExit;
-    }
-
     // load section for corresponding API
-    error = CtlLoadSections(api, ctrlConfig, ctrlSections);
+    int error = CtlLoadSections(api, ctrlConfig, ctrlSections);
 
     // init and seal API function
     afb_api_on_init(api, CtrlInitOneApi);
     afb_api_seal(api);
 
-OnErrorExit:
-    return error;
+    return error;    
 }
 
 int afbBindingEntry(afb_api_t api) {

@@ -48,6 +48,7 @@ typedef struct ModbusEncoderCbS {
   const char * uid;
   const char *info;
   const uint nbreg;
+  int  subtype;
   int (*encodeCB)(afb_api_t api, struct ModbusEncoderCbS *format, json_object *sourceJ, uint16_t **response, uint index);
   int (*decodeCB)(afb_api_t api, struct ModbusEncoderCbS *format, uint16_t *source, uint index, json_object **responseJ);
 } ModbusFormatCbT;
@@ -109,7 +110,7 @@ typedef struct {
 void ModbusSensorRequest (afb_req_t request, ModbusSensorT *sensor, json_object *queryJ);
 void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ);
 int ModbusRtuConnect (afb_api_t api, ModbusRtuT *rtu);
-int ModbusRtuSlaveId (ModbusRtuT *rtu, int length, json_object **responseJ);
+int ModbusRtuIsConnected (afb_api_t api, ModbusRtuT *rtu);
 ModbusFunctionCbT * mbFunctionFind (afb_api_t api, const char *uri);
 
 // modbus-encoder.c

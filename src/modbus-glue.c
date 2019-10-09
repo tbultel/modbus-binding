@@ -467,73 +467,67 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
         switch (verbose) {
             default:
             case 1:
-                wrap_json_pack (&elemJ, "{ss ss si si si}", "uid", sensor->uid, "info"
-                , sensor->info, "type", sensor->function->uid, "format", sensor->format->uid, "length", sensor->format->nbreg);
+                wrap_json_pack (&elemJ, "{ss ss ss si si}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
+                     , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count);
                 break;
             case 2:
                 err = (sensor->function->readCB) (sensor, &dataJ);
                 if (err) dataJ=NULL;
-                wrap_json_pack (&elemJ, "{ss ss si si si sb so}", "uid", sensor->uid, "info", sensor->info
-                    , "type", sensor->function->uid, "format", sensor->format->uid, "length", sensor->format->nbreg, "readable", 1, "data", dataJ);
+                wrap_json_pack (&elemJ, "{ss ss ss si si so}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
+                     , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count, "data", dataJ);
         }
         json_object_array_add (*responseJ, elemJ);
+
+        fprintf (stderr, "*** %s **", json_object_get_string(elemJ));
     }
 }
 
-int ModbusRtuSlaveId (ModbusRtuT *rtu, int idlen, json_object **responseJ) {
-    uint8_t *dest;
+int ModbusRtuIsConnected (afb_api_t api, ModbusRtuT *rtu) {
+    uint8_t response[MODBUS_MAX_PDU_LENGTH];
     modbus_t *ctx = (modbus_t*)rtu->context;
-    int err;
+    int run;
 
-    // not way to discover RTU slave ID info length
-    if (idlen ==0) idlen=rtu->idlen;
-    if (idlen ==0) idlen=1;
+    run= modbus_report_slave_id(ctx, sizeof(response), response); 
+    if (run <0) goto OnErrorExit;
 
-    dest= ( uint8_t*)alloca (sizeof(uint8_t)*idlen);
-    err= modbus_report_slave_id(ctx, idlen, dest); 
-    if (err) goto OnErrorExit;
+    if (run >0) return 1;
+    else return 0;
 
-    *responseJ= json_object_new_array();
-    for (int idx = 0; idx < idlen; idx++) {
-        json_object_array_add (*responseJ, json_object_new_int(dest[idx]));
-    }
-return 0;
-
-OnErrorExit: 
-    return 1;        
+OnErrorExit:
+    AFB_API_ERROR(api, "ModbusRtuIsConnected: fail to get RTU=%s connection status err=%s", rtu->uid, modbus_strerror(errno));
+    return -1;
 }
 
 void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
     modbus_t *ctx = (modbus_t*)rtu->context;
     const char *action;
     const char *uri=NULL;
-    int length=0;
     int verbose=0;
     json_object *responseJ=NULL;
     int err;
 
-    err= wrap_json_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "uri", &uri, "verbose", &verbose, "length", &length);
+    err= wrap_json_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "verbose", &verbose, "uri", &uri);
     if (err) {
-        afb_req_fail_f (request, "ModbusAdmin", "invalid query rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
+        afb_req_fail_f (request, "ModbusRtuAdmin", "invalid query rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
         goto OnErrorExit;
     }
 
     if (!strcasecmp(action, "connect")) {
 
         if (rtu->context) {
-            afb_req_fail_f (request, "ModbusAdmin", "cannot connect twice rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
+            afb_req_fail_f (request, "ModbusRtuAdmin", "cannot connect twice rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
             goto OnErrorExit;
         }
 
         if (!uri) {
-            afb_req_fail_f (request, "ModbusAdmin", "connot connect URI missing rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
+            afb_req_fail_f (request, "ModbusRtuAdmin", "connot connect URI missing rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
             goto OnErrorExit;
         }
 
         rtu->uri= uri;
         err = ModbusRtuConnect (request->api, rtu);
         if (err) {
-            afb_req_fail_f (request, "ModbusAdmin", "fail to parse uri=%s query=%s", uri, json_object_get_string(queryJ));
+            afb_req_fail_f (request, "ModbusRtuAdmin", "fail to parse uri=%s query=%s", uri, json_object_get_string(queryJ));
             goto OnErrorExit;
         } 
 
@@ -543,19 +537,8 @@ void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) 
         rtu->context=NULL;
         
     } else if (!strcasecmp(action, "info")) {
-        json_object *slaveidJ, *sensorsJ;
-        err= ModbusRtuSlaveId (rtu, length, &slaveidJ);
-        if (err) {
-            afb_req_fail_f (request, "ModbusAdmin", "fail report slave id rtu=%s query=%s", rtu->uid, json_object_get_string(queryJ));
-            goto OnErrorExit;
-        }
 
-        if (!verbose) {
-            wrap_json_pack (&responseJ, "so", "slaveid", slaveidJ);
-        } else {
-            ModbusRtuSensorsId (rtu, verbose, &sensorsJ);
-            wrap_json_pack (&responseJ, "so so", "slaveid", slaveidJ, "sensors", sensorsJ);
-        }
+        ModbusRtuSensorsId (rtu, verbose, &responseJ);
     }
 
     afb_req_success(request, responseJ, NULL);

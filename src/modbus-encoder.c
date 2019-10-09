@@ -132,22 +132,68 @@ OnErrorExit:
     return NULL;
 }
 
-static int mbDecodeFloatABCD (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
-    float value= modbus_get_float_abcd (&source [index*format->nbreg]);
+// float64 subtype
+enum {
+    MB_FLOAT_ABCD,
+    MB_FLOAT_BADC,
+    MB_FLOAT_DCBA,
+    MB_FLOAT_CDAB,
+} MbFloatSubType;
+
+static int mbDecodeFloat64 (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
+    float value;
+
+    switch (format->subtype) {
+        case MB_FLOAT_ABCD: 
+            value= modbus_get_float_abcd (&source [index*format->nbreg]);
+            break;
+        case MB_FLOAT_BADC: 
+            value= modbus_get_float_badc (&source [index*format->nbreg]);
+            break;
+        case MB_FLOAT_DCBA: 
+            value= modbus_get_float_dcba (&source [index*format->nbreg]);
+            break;
+        case MB_FLOAT_CDAB: 
+            value= modbus_get_float_cdab (&source [index*format->nbreg]);
+            break;
+        default:
+            goto OnErrorExit;
+    }
     *responseJ = json_object_new_double (value);
     return 0;
-}
-
-static int mbEncodeFloatABCD(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   float value;
-
-   if (!json_object_is_type (sourceJ, json_type_double)) goto OnErrorExit;
-   value= (float)json_object_get_double (sourceJ);
-   modbus_set_float_abcd (value, *&response[index*format->nbreg]);
-   return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeFloatABCD: [%s] not a double/float", json_object_get_string (sourceJ));
+    AFB_API_ERROR(api, "mbDecodeFloat64: invalid subtype format='%s' subtype=%d", format->uid, format->subtype);
+    return 1;
+}
+
+static int mbEncodeFloat64(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+    float value;
+
+    if (!json_object_is_type (sourceJ, json_type_double)) goto OnErrorExit;
+    value= (float)json_object_get_double (sourceJ);
+
+    switch (format->subtype) {
+        case MB_FLOAT_ABCD: 
+            modbus_set_float_abcd (value, *&response[index*format->nbreg]);
+            break;
+        case MB_FLOAT_BADC: 
+            modbus_set_float_badc (value, *&response[index*format->nbreg]);
+            break;
+        case MB_FLOAT_DCBA: 
+            modbus_set_float_dcba (value, *&response[index*format->nbreg]);
+            break;
+        case MB_FLOAT_CDAB: 
+            modbus_set_float_cdab (value, *&response[index*format->nbreg]);
+            break;
+        default:
+            goto OnErrorExit;
+    }
+    modbus_set_float_abcd (value, *&response[index*format->nbreg]);
+    return 0;
+
+OnErrorExit:
+    AFB_API_ERROR(api, "mbDecodeFloatABCD: format='%s' value='%s' not a double/float ", format->uid, json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -227,14 +273,15 @@ OnErrorExit:
     return 1;
 }
 
-
-
 static ModbusFormatCbT coreEncodersCB[] = {
-  {.uid="BOOL"      , .nbreg=1, .decodeCB=mbDecodeBoolean  , .encodeCB=mbEncodeBoolean},
-  {.uid="INT16"     , .nbreg=1, .decodeCB=mbDecodeInt16    , .encodeCB=mbEncodeInt16},
-  {.uid="INT32"     , .nbreg=2, .decodeCB=mbDecodeInt32    , .encodeCB=mbEncodeInt32},
-  {.uid="INT64"     , .nbreg=2, .decodeCB=mbDecodeInt64    , .encodeCB=mbEncodeInt64},
-  {.uid="FLOAT_ABCD", .nbreg=4, .decodeCB=mbDecodeFloatABCD, .encodeCB=mbEncodeFloatABCD},
+  {.uid="BOOL"      , .nbreg=1, .decodeCB=mbDecodeBoolean, .encodeCB=mbEncodeBoolean},
+  {.uid="INT16"     , .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
+  {.uid="INT32"     , .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
+  {.uid="INT64"     , .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
+  {.uid="FLOAT_ABCD", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
+  {.uid="FLOAT_BADC", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
+  {.uid="FLOAT_dcba", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
+  {.uid="FLOAT_CDAB", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
 
   {.uid= NULL} // must be null terminated
 };
