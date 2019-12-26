@@ -48,7 +48,11 @@ OnErrorExit:
 
 // try to reconnect when RTU close connection
 static void ModbusReconnect (ModbusSensorT *sensor) {
-    modbus_t *ctx = (modbus_t*)sensor->rtu->context;    
+    modbus_t *ctx = (modbus_t*)sensor->rtu->context; 
+    AFB_API_NOTICE(sensor->api, "ModbusReconnect: Try reconnecting rtu=%s", sensor->rtu->uid);
+
+    // force deconnection/reconnection
+    modbus_close(ctx);
     int err = modbus_connect(ctx);
     if (err) {
         AFB_API_ERROR(sensor->api, "ModbusReconnect: Socket disconnected rtu=%s error=%s", sensor->rtu->uid, strerror(err)); 
@@ -241,16 +245,17 @@ static int ModbusTimerCallback (TimerHandleT *timer) {
     // update sensor buffer with current value without building JSON
     err = (sensor->function->readCB) (sensor, NULL);
     if (err) {
-        AFB_API_ERROR(sensor->api, "ModbusTimerCallback: fail read sensor rtu=%s sensor=%s", sensor->rtu->uid, sensor->uid);  
-        goto AllExit;
+        AFB_API_ERROR(sensor->api, "ModbusTimerCallback: fail read sensor rtu=%s sensor=%s", sensor->rtu->uid, sensor->uid);
+        goto OnErrorExit;
     }
 
+
     // if buffer change then update JSON and send event
-    if (memcmp (context->buffer, sensor->buffer, sizeof(uint16_t)*sensor->format->nbreg*sensor->count)) {
+    if (memcmp (context->buffer, sensor->buffer, sizeof(uint16_t)*sensor->format->nbreg*sensor->count) || !--context->iddle) {
 
         // if responseJ is provided build JSON response
         err = ModBusFormatResponse (sensor, &responseJ);
-        if (err) goto AllExit;
+        if (err) goto OnErrorExit;
 
         // send event and it no more client remove event and timer
         count= afb_event_push (sensor->event, responseJ);
@@ -259,12 +264,15 @@ static int ModbusTimerCallback (TimerHandleT *timer) {
             sensor->event= NULL;
             free (context->buffer);
             TimerEvtStop (timer);
+        } else {
+            // save current sensor buffer for next comparison
+            memcpy (context->buffer, sensor->buffer, sizeof(uint16_t) * sensor->format->nbreg * sensor->count); 
+            context->iddle = sensor->iddle; // reset iddle counter
         }
-        // save current sensor buffer for next comparison
-        memcpy (context->buffer, sensor->buffer, sizeof(uint16_t) * sensor->format->nbreg * sensor->count); 
     } 
+    return 1;
 
-AllExit:
+OnErrorExit:
     return 1;  // Returning 0 would stop the timer
 }
 
@@ -290,13 +298,14 @@ static int ModbusSensorEventCreate (ModbusSensorT *sensor, json_object **respons
         }
 
         sensor->timer = (TimerHandleT*)calloc (1, sizeof(TimerHandleT));
-        sensor->timer->delay = (uint) 1000 / rtu->herzh;
+        sensor->timer->delay = (uint) 1000 / rtu->hertz;
         sensor->timer->count = -1; // run forever
         err=asprintf (&timeruid, "%s/%s", rtu->uid, sensor->uid);
         sensor->timer->uid = timeruid;
         
         mbEvtHandle = (ModbusEvtT*)calloc (1, sizeof(ModbusEvtT));
         mbEvtHandle->sensor = sensor;
+        mbEvtHandle->iddle =  sensor->iddle;
         mbEvtHandle->buffer = (uint16_t*)calloc (sensor->format->nbreg*sensor->count,sizeof(uint16_t)); // keep track of old value
 
         TimerEvtStart (sensor->api, sensor->timer, ModbusTimerCallback, mbEvtHandle);

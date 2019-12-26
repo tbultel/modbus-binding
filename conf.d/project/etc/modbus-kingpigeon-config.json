@@ -26,6 +26,7 @@
         "autostart" : 1,
         "prefix": "mt110",
         "privilege": "global privilege",
+        "hertz": 10,
         "sensors": [
           {
             "uid": "PRODUCT_INFO",
@@ -52,6 +53,7 @@
             "uid": "DIN01_COUNTER",
             "type": "Register_Holding",
             "format" : "INT32",
+            "iddle" : 25,
             "register" : 3
           },
           {

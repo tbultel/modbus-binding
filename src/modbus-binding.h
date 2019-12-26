@@ -65,9 +65,10 @@ typedef struct ModbusRtuS ModbusRtuT;
   const char *prefix;
   const char *uri;
   const int timeout;
+  const int iddle;
   const int slaveid;
   const int debug;
-  uint herzh;  // default pooling frequency when subscribing to sensors
+  uint hertz;  // default pooling frequency when subscribing to sensors
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
   void *context;
@@ -79,7 +80,8 @@ struct ModbusSensorS {
   const char *info;
   const uint registry;
   uint count;
-  uint herzh;
+  uint hertz;
+  uint iddle;
   uint16_t *buffer; 
   ModbusFormatCbT *format;
   ModbusFunctionCbT *function;
@@ -102,6 +104,7 @@ struct ModbusFunctionCbS {
 typedef struct {
   uint16_t *buffer; 
   uint count;
+  int iddle;
   ModbusSensorT *sensor;
 } ModbusEvtT;
 

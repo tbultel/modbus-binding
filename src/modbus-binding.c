@@ -147,17 +147,19 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     // set default values
     memset(sensor, 0, sizeof (ModbusSensorT));
     sensor->rtu   = rtu;
-    sensor->herzh = rtu->herzh;
+    sensor->hertz = rtu->hertz;
+    sensor->iddle = rtu->iddle;
     sensor->count = 1;
 
-    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i !}",
+    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i !}",
                 "uid", &sensor->uid,
                 "type", &type,
                 "register", &sensor->registry,
                 "info", &sensor->info,
                 "privilege", &privilege,
                 "format", &format,
-                "herzh", &sensor->herzh,
+                "hertz", &sensor->hertz,
+                "iddle", &sensor->iddle,
                 "count", &sensor->count);
     if (err) {
         AFB_API_ERROR(api, "SensorLoadOne: Fail to parse sensor: %s", json_object_to_json_string(sensorJ));
@@ -210,7 +212,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     assert (api);
 
     memset(rtu, 0, sizeof (ModbusRtuT)); // default is empty
-    err = wrap_json_unpack(rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,so}",
+    err = wrap_json_unpack(rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,so}",
             "uid", &rtu->uid,
             "info", &rtu->info,
             "uri", &rtu->uri,
@@ -221,7 +223,8 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
             "debug", &rtu->debug,
             "timeout", &rtu->timeout,
             "idlen", &rtu->idlen,
-            "herzh", &rtu->herzh,
+            "hertz", &rtu->hertz,
+            "iddle", &rtu->iddle,
             "sensors", &sensorsJ);
     if (err) {
         AFB_API_ERROR(api, "Fail to parse rtu JSON : (%s)", json_object_to_json_string(rtuJ));
@@ -239,7 +242,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     if (!rtu->prefix) rtu->prefix= rtu->uid;
 
     // set default pooling frequency
-    if (!rtu->herzh) rtu->herzh=MB_DEFAULT_POLLING_FEQ;
+    if (!rtu->hertz) rtu->hertz=MB_DEFAULT_POLLING_FEQ;
 
     err=asprintf (&adminCmd, "%s/%s", rtu->prefix, "admin");
     err= afb_api_add_verb(api, adminCmd, rtu->info, RtuDynRequest, rtu, authent, 0, 0);

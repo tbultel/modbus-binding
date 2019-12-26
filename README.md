@@ -85,6 +85,7 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
         "timeout": xxxx // optionnal response timeout in ms
         "debug": 0-3 // option libmodbus debug level
         "hertz": 10  // default pooling for event subscription 
+        "iddle": 0   // force event even when value does not change every hertz*iddle count
         "sensors": [
           {
             "uid": "PRODUCT_INFO",
@@ -101,6 +102,7 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
             "register" : 1,
             "privilege": "optionnal sensor required privilege"
             "herz": xxx // special pooling rate for this sensor 
+            "iddle": xxx // special iddle force event when value does not change 
           },
           {
             "uid": "DIN01_counter",
