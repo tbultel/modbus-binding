@@ -44,19 +44,29 @@ typedef enum {
   MB_REGISTER_HOLDING,  // Func Code Read=03 WriteSingle=06 WriteMultiple=16
 } ModbusTypeE;          
 
-typedef struct ModbusEncoderCbS {
-  const char * uid;
-  const char *info;
-  const uint nbreg;
-  int  subtype;
-  int (*encodeCB)(afb_api_t api, struct ModbusEncoderCbS *format, json_object *sourceJ, uint16_t **response, uint index);
-  int (*decodeCB)(afb_api_t api, struct ModbusEncoderCbS *format, uint16_t *source, uint index, json_object **responseJ);
-} ModbusFormatCbT;
-
 // hack to get double link rtu<->sensor
 typedef struct ModbusSensorS ModbusSensorT;
 typedef struct ModbusFunctionCbS ModbusFunctionCbT;
 typedef struct ModbusRtuS ModbusRtuT;
+typedef struct ModbusEncoderCbS ModbusFormatCbT;
+typedef struct ModbusSourceS ModbusSourceT;
+
+struct ModbusEncoderCbS {
+  const char *uid;
+  const char *info;
+  const uint nbreg;
+  int  subtype;
+  int (*encodeCB)(ModbusSourceT *source, struct ModbusEncoderCbS *format, json_object *sourceJ, uint16_t **response, uint index);
+  int (*decodeCB)(ModbusSourceT *source, struct ModbusEncoderCbS *format, uint16_t *data, uint index, json_object **responseJ);
+  int (*initCB)(ModbusSourceT *source, json_object *argsJ);
+};
+
+struct ModbusSourceS {
+  const char *sensor;
+  const char *format;
+  afb_api_t api;
+  void *context;
+};
 
  struct ModbusRtuS {
   const char *uid;

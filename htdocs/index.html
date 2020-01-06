@@ -24,15 +24,18 @@
 
 		<button onclick="callbinder('modbus','info' ,{'verbose':2});">Get RTU list</button></li>
 
-		<button onclick="callbinder('modbus','mt110/product_info' ,{'action':'read'});">Get MT110 product id</button></li>
-		<button onclick="callbinder('modbus','mt110/admin' ,{'action':'info','verbose':'1'});">Get MT110 I/O info</button></li>
+		<button onclick="callbinder('modbus','RTU0/product_info' ,{'action':'read'});">Get RTU0 product id</button></li>
+		<button onclick="callbinder('modbus','RTU0/admin' ,{'action':'info','verbose':'1'});">Get RTU0 I/O info</button></li>
 
-		<button onclick="callbinder('modbus','mt110/DIN01_STATUS' ,{'action':'read'});">Read DIN1 Status</button></li>
-		<button onclick="callbinder('modbus','mt110/DIN01_COUNTER' ,{'action':'read'});">Read DIN1 counter</button></li>
-		<button onclick="callbinder('modbus','mt110/DIN01_COUNTER' ,{'action':'subscribe'});">Subscribe DIN1 counter</button></li>
+		<button onclick="callbinder('modbus','RTU0/DIN01_STATUS' ,{'action':'read'});">Read DIN1 Status</button></li>
+		<button onclick="callbinder('modbus','RTU0/DIN01_COUNTER' ,{'action':'read'});">Read DIN1 counter</button></li>
+		<button onclick="callbinder('modbus','RTU0/DIN01_RCOUNTER' ,{'action':'subscribe'});">Subscribe DIN1 Diff counter</button></li>
 
-		<button onclick="callbinder('modbus','mt110/D01_SWITCH' ,{'action':'write', 'data':true});">Set D01_STATUS True</button></li>
-		<button onclick="callbinder('modbus','mt110/D01_SWITCH' ,{'action':'write', 'data':false});">Set D01_STATUS False</button></li>
+		<button onclick="callbinder('modbus','RTU0/DIN01_MODE' ,{'action':'write', 'data':1});">Set DIN01_MODE Raising</button></li>
+		<button onclick="callbinder('modbus','RTU0/DIN01_MODE' ,{'action':'write', 'data':0});">Set DIN01_MODE Falling</button></li>
+
+		<button onclick="callbinder('modbus','RTU0/D01_SWITCH' ,{'action':'write', 'data':true});">Set D01_STATUS True</button></li>
+		<button onclick="callbinder('modbus','RTU0/D01_SWITCH' ,{'action':'write', 'data':false});">Set D01_STATUS False</button></li>
 
 		<button onclick="callbinder('unknown_api','ping' ,{});">Send unknown Api</button></li>
 

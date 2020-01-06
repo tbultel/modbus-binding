@@ -139,7 +139,9 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     const char *format=NULL;
     const char *privilege=NULL;
     afb_auth_t *authent=NULL;
+    json_object *argsJ;
     char* apiverb;
+    ModbusSourceT source;
 
     // should already be allocated
     assert (sensorJ);
@@ -151,7 +153,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     sensor->iddle = rtu->iddle;
     sensor->count = 1;
 
-    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i !}",
+    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?o !}",
                 "uid", &sensor->uid,
                 "type", &type,
                 "register", &sensor->registry,
@@ -160,7 +162,8 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
                 "format", &format,
                 "hertz", &sensor->hertz,
                 "iddle", &sensor->iddle,
-                "count", &sensor->count);
+                "count", &sensor->count,
+                "args", &argsJ);
     if (err) {
         AFB_API_ERROR(api, "SensorLoadOne: Fail to parse sensor: %s", json_object_to_json_string(sensorJ));
         goto OnErrorExit;
@@ -180,6 +183,21 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
        authent= (afb_auth_t*) calloc(1, sizeof (afb_auth_t));
        authent->type = afb_auth_Permission;
        authent->text = privilege;
+    }
+
+    // if defined call format init callback
+    if (sensor->format->initCB) {
+        source.sensor = sensor->uid;
+        source.format = sensor->format->uid;
+        source.api = api;
+        source.context=NULL;
+        err = sensor->format->initCB (&source, argsJ);
+        if (err) {
+            AFB_API_ERROR(api, "SensorLoadOne: fail to init format verb=%s", apiverb);
+            goto OnErrorExit;
+        }
+        // remember context for further encode/decode callback 
+        sensor->context = source.context;
     }
 
     err=asprintf (&apiverb, "%s/%s", rtu->prefix, sensor->uid);

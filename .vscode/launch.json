@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/opt/AGL/bin/afb-daemon",
-            "args": ["--name=afb-kingpigeon-test", "--port=1234",  "--ldpaths=src", "--workdir=.", "--roothttp=../htdocs", "--token=", "--verbose", "--trap-faults=no"],
+            "args": ["--name=afb-mt100@lorient-test", "--port=1234",  "--ldpaths=src", "--workdir=.", "--roothttp=../htdocs", "--token=", "--verbose", "--trap-faults=no"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
             "environment": [],

@@ -26,16 +26,27 @@
 
 static int ModBusFormatResponse (ModbusSensorT *sensor, json_object **responseJ) {
     ModbusFormatCbT *format = sensor->format;
+    ModbusSourceT source;
     json_object *elemJ;
     int err;
+    
+    if (!format->decodeCB) {
+        AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No decodeCB uid=%s", sensor->uid);
+        goto OnErrorExit;
+    }
+
+        // create source info
+    source.sensor = sensor->uid;
+    source.api = sensor->api;
+    source.context = sensor->context;
 
     if (sensor->count == 1) {
-        err = format->decodeCB (sensor->api, format, (uint16_t*)sensor->buffer, 0, responseJ);
+        err = format->decodeCB (&source, format, (uint16_t*)sensor->buffer, 0, responseJ);
         if (err) goto OnErrorExit;
     } else {
         *responseJ = json_object_new_array();
         for (int idx=0; idx < sensor->count; idx++) {
-            err = sensor->format->decodeCB (sensor->api, format, (uint16_t*)sensor->buffer, idx, &elemJ);
+            err = sensor->format->decodeCB (&source,format, (uint16_t*)sensor->buffer, idx, &elemJ);
             if (err) goto OnErrorExit;
             json_object_array_add (*responseJ, elemJ);
         }
@@ -180,11 +191,24 @@ static int ModBusWriteRegisters (ModbusSensorT *sensor, json_object *queryJ) {
     modbus_t *ctx = (modbus_t*)rtu->context;
     json_object *elemJ;  
     int err, idx;
+    ModbusSourceT source;
 
     uint16_t *data16= (uint16_t *)alloca(sizeof(uint16_t) * format->nbreg * sensor->count);
 
+    // create source info
+    source.sensor = sensor->uid;
+    source.api = sensor->api;
+    source.context = sensor->context;
+
+    if (!format->encodeCB) {
+        AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No encodeCB uid=%s", sensor->uid);
+        goto OnErrorExit; 
+    }
+
     if (!json_object_is_type(queryJ, json_type_array))  {
-        err= format->encodeCB (sensor->api, format, queryJ, &data16, 0);
+
+
+        err= format->encodeCB (&source, format, queryJ, &data16, 0);
         if (err) goto OnErrorExit;
         if (format->nbreg == 1) {
             err= modbus_write_register(ctx, sensor->registry, data16[0]); // Modbus function code 0x06 (preset single register).
@@ -196,7 +220,7 @@ static int ModBusWriteRegisters (ModbusSensorT *sensor, json_object *queryJ) {
     } else {
         for (idx=0; idx < sensor->format->nbreg; idx++) {
             elemJ = json_object_array_get_idx (queryJ, idx);
-            err= format->encodeCB (sensor->api, format, elemJ, &data16, idx);
+            err= format->encodeCB (&source, format, elemJ, &data16, idx);
             if (err) goto OnErrorExit; 
         }
         err= modbus_write_registers(ctx, sensor->registry, format->nbreg, data16); // Modbus function code 0x10 (preset multiple registers).

@@ -18,13 +18,13 @@
     ], 
     "modbus": [
       {
-        "uid": "King-Pigeon-MT110",
-        "info": "King Pigeon 'MT110' Modbus TCP Remote I/O Module",
+        "uid": "King-Pigeon-RTU0",
+        "info": "King Pigeon 'RTU0' Modbus TCP Remote I/O Module",
         "uri" : "tcp://192.168.1.110:502",
         "slaveid": 1,
         "timeout": 250,
         "autostart" : 1,
-        "prefix": "mt110",
+        "prefix": "RTU0",
         "privilege": "global privilege",
         "hertz": 10,
         "sensors": [

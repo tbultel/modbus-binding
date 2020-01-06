@@ -115,13 +115,13 @@ ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) {
             if (registryIdx->uid && !strcasecmp (registryIdx->uid, uri)) break;
         }
         if (!registryIdx) {
-            AFB_API_ERROR(api, "mbEncoderFind: Fail find plugin='%s' format encoder ", formatuid);
+            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%s' format encoder ", formatuid);
             goto OnErrorExit;
         }
 
         format= mvOneFormatFind (registryIdx->formats, formatuid);
         if (!format || !format->uid) {
-            AFB_API_ERROR(api, "mbEncoderFind: Fail find plugin='%s' format='%s' encoder", pluginuid, formatuid);
+            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%s' format='%s' encoder", pluginuid, formatuid);
             goto OnErrorExit;
         }  
     }
@@ -140,21 +140,21 @@ enum {
     MB_FLOAT_CDAB,
 } MbFloatSubType;
 
-static int mbDecodeFloat64 (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
+static int mbDecodeFloat64 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
     float value;
 
     switch (format->subtype) {
         case MB_FLOAT_ABCD: 
-            value= modbus_get_float_abcd (&source [index*format->nbreg]);
+            value= modbus_get_float_abcd (&data [index*format->nbreg]);
             break;
         case MB_FLOAT_BADC: 
-            value= modbus_get_float_badc (&source [index*format->nbreg]);
+            value= modbus_get_float_badc (&data [index*format->nbreg]);
             break;
         case MB_FLOAT_DCBA: 
-            value= modbus_get_float_dcba (&source [index*format->nbreg]);
+            value= modbus_get_float_dcba (&data [index*format->nbreg]);
             break;
         case MB_FLOAT_CDAB: 
-            value= modbus_get_float_cdab (&source [index*format->nbreg]);
+            value= modbus_get_float_cdab (&data [index*format->nbreg]);
             break;
         default:
             goto OnErrorExit;
@@ -163,11 +163,11 @@ static int mbDecodeFloat64 (afb_api_t api, ModbusFormatCbT *format, uint16_t *so
     return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeFloat64: invalid subtype format='%s' subtype=%d", format->uid, format->subtype);
+    AFB_API_ERROR(source->api, "mbDecodeFloat64: invalid subtype format='%s' subtype=%d", format->uid, format->subtype);
     return 1;
 }
 
-static int mbEncodeFloat64(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+static int mbEncodeFloat64(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
     float value;
 
     if (!json_object_is_type (sourceJ, json_type_double)) goto OnErrorExit;
@@ -193,17 +193,17 @@ static int mbEncodeFloat64(afb_api_t api, ModbusFormatCbT *format, json_object *
     return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeFloatABCD: format='%s' value='%s' not a double/float ", format->uid, json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeFloatABCD: format='%s' value='%s' not a double/float ", format->uid, json_object_get_string (sourceJ));
     return 1;
 }
 
-static int mbDecodeInt64 (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
-    uint64_t value= MODBUS_GET_INT64_FROM_INT16(source, index*format->nbreg);
+static int mbDecodeInt64 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+    uint64_t value= MODBUS_GET_INT64_FROM_INT16(data, index*format->nbreg);
     *responseJ = json_object_new_int64 (value);
     return 0;
 }
 
-static int mbEncodeInt64(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+static int mbEncodeInt64(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
    
    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
    uint64_t val= (int64_t)json_object_get_int (sourceJ);
@@ -211,18 +211,36 @@ static int mbEncodeInt64(afb_api_t api, ModbusFormatCbT *format, json_object *so
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeInt64: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt64: [%s] not an interger", json_object_get_string (sourceJ));
+    return 1;
+}
+
+static int mbDecodeUInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+    uint32_t value= (uint32_t) MODBUS_GET_INT32_FROM_INT16(data, index*format->nbreg);
+    *responseJ = json_object_new_int64 ((int64_t)value);
+    return 0;
+}
+
+static int mbEncodeUInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index, void * context) {
+   
+   if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
+   uint32_t value= (uint32_t)json_object_get_int (sourceJ);
+   MODBUS_SET_INT32_TO_INT16 (*response, index*format->nbreg, (int32_t)value);
+   return 0;
+
+OnErrorExit:
+    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
     return 1;
 }
 
 
-static int mbDecodeInt32 (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
-    int32_t value= MODBUS_GET_INT32_FROM_INT16(source, index*format->nbreg);
+static int mbDecodeInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+    int32_t value= MODBUS_GET_INT32_FROM_INT16(data, index*format->nbreg);
     *responseJ = json_object_new_int (value);
     return 0;
 }
 
-static int mbEncodeInt32(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+static int mbEncodeInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
    
    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
    int32_t value= (int32_t)json_object_get_int (sourceJ);
@@ -230,18 +248,18 @@ static int mbEncodeInt32(afb_api_t api, ModbusFormatCbT *format, json_object *so
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
     return 1;
 }
 
 
-int mbDecodeInt16 (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
+int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
-    *responseJ = json_object_new_int (source[index*format->nbreg]);
+    *responseJ = json_object_new_int (data[index*format->nbreg]);
     return 0;
 }
 
-static int mbEncodeInt16(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+static int mbEncodeInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
    
    if (!json_object_is_type (sourceJ, json_type_int))  goto OnErrorExit;
    int16_t value = (int16_t)json_object_get_int (sourceJ);
@@ -250,17 +268,17 @@ static int mbEncodeInt16(afb_api_t api, ModbusFormatCbT *format, json_object *so
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
     return 1;
 }
 
-int mbDecodeBoolean (afb_api_t api, ModbusFormatCbT *format, uint16_t *source, uint index, json_object **responseJ) {
+int mbDecodeBoolean (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
-    *responseJ = json_object_new_boolean (source[index*format->nbreg]);
+    *responseJ = json_object_new_boolean (data[index*format->nbreg]);
     return 0;
 }
 
-static int mbEncodeBoolean(afb_api_t api, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+static int mbEncodeBoolean(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
    
    if (!json_object_is_type (sourceJ, json_type_boolean))  goto OnErrorExit;
    int16_t value = (int16_t)json_object_get_boolean (sourceJ);
@@ -269,7 +287,7 @@ static int mbEncodeBoolean(afb_api_t api, ModbusFormatCbT *format, json_object *
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(api, "mbEncodeBoolean: [%s] not a boolean", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbEncodeBoolean: [%s] not a boolean", json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -277,6 +295,7 @@ static ModbusFormatCbT coreEncodersCB[] = {
   {.uid="BOOL"      , .nbreg=1, .decodeCB=mbDecodeBoolean, .encodeCB=mbEncodeBoolean},
   {.uid="INT16"     , .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
   {.uid="INT32"     , .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
+  {.uid="UINT32"    , .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
   {.uid="INT64"     , .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
   {.uid="FLOAT_ABCD", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
   {.uid="FLOAT_BADC", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
