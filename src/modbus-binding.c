@@ -139,7 +139,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     const char *format=NULL;
     const char *privilege=NULL;
     afb_auth_t *authent=NULL;
-    json_object *argsJ;
+    json_object *argsJ=NULL;
     char* apiverb;
     ModbusSourceT source;
 
