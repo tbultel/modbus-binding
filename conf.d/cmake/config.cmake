@@ -139,7 +139,7 @@ set(WIDGET_TYPE application/vnd.agl.service)
 # This is the file that will be executed, loaded,
 # at launch time by the application framework.
 #
-set(WIDGET_ENTRY_POINT config.xml)
+set(WIDGET_ENTRY_POINT lib/afb-modbus.so)
 
 # Optional dependencies order
 # ---------------------------

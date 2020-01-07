@@ -19,7 +19,7 @@
 ##################################################
 # Control Policy Config file
 ##################################################
-PROJECT_TARGET_ADD(softmixer-config)
+PROJECT_TARGET_ADD(modbus-config)
 
 	file(GLOB CONF_FILES "*.json")
 
