@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2017 IoT.bzh
+# Copyright 2015, 2016, 2017, 2018, 2019 IoT.bzh
 #
 # author: Fulup Ar Foll <fulup@iot.bzh>
 #
@@ -7,7 +7,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#	http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,16 +16,27 @@
 # limitations under the License.
 ###########################################################################
 
-##################################################
-# Control Policy Config file
-##################################################
-PROJECT_TARGET_ADD(modbus-config)
+PROJECT_TARGET_ADD(raymarine-anemometer)
 
-	file(GLOB CONF_FILES "*.json")
+	# compile any C file starting with a lower case
+	file(GLOB CSOURCES [a-z]*.c)
 
-	add_input_files("${CONF_FILES}")
+	# Define project Targets
+	add_library(${TARGET_NAME} MODULE  ${CSOURCES})
 
+	# Alsa Plugin properties
 	SET_TARGET_PROPERTIES(${TARGET_NAME} PROPERTIES
-	LABELS "BINDING-CONFIG"
-	OUTPUT_NAME ${TARGET_NAME}
+			LABELS "PLUGIN"
+			PREFIX ""
+			SUFFIX ".ctlso"
+			OUTPUT_NAME ${TARGET_NAME}
 	)
+
+	# Library dependencies (include updates automatically)
+    TARGET_LINK_LIBRARIES(${TARGET_NAME}
+		m
+	)
+
+	# compilation include path
+	target_include_directories(${TARGET_NAME}
+	PRIVATE "${CMAKE_SOURCE_DIR}/src")
