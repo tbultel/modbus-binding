@@ -83,7 +83,7 @@ set (PKG_REQUIRED_LIST
 if(IS_DIRECTORY $ENV{HOME}/opt/afb-monitoring)
 set(MONITORING_ALIAS "--alias=/monitoring:$ENV{HOME}/opt/afb-monitoring")
 endif()
-set(CLOSING_MESSAGE "Debug from buildir: afb-daemon --name=afb-kingpigeon-test --port=1234 ${MONITORING_ALIAS} --ldpaths=src --workdir=. --roothttp=../htdocs --token= --verbose ")
+set(CLOSING_MESSAGE "Debug from buildir: afb-daemon --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. --roothttp=../htdocs --token= -vvv")
 set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install ${PROJECT_NAME}.wgt")
 
 # Customize link option
@@ -91,15 +91,16 @@ set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install 
 #list(APPEND link_libraries -an-option)
 
 # Compilation options definition
-add_definitions(-DCONTROL_CONFIG_PATH="${CMAKE_SOURCE_DIR}/conf.d/project/etc:${CMAKE_BINARY_DIR}/package/etc:${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/etc")
+set(CONTROL_CONFIG_PATH "${CMAKE_SOURCE_DIR}/conf.d/project/etc:${CMAKE_BINARY_DIR}/package/etc:${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/etc" CACHE STRING "CONTROL_CONFIG_PATH")
+add_definitions(-DCONTROL_CONFIG_PATH="${CONTROL_CONFIG_PATH}")
 # Use CMake generator expressions to specify only for a specific language
 # Values are prefilled with default options that is currently used.
 # Either separate options with ";", or each options must be quoted separately
 # DO NOT PUT ALL OPTION QUOTED AT ONCE , COMPILATION COULD FAILED !
 # ----------------------------------------------------------------------------
-set (C_COMPILE_OPTIONS "-Wno-shift-count-overflow" "-Wno-conversion") 
-#set(COMPILE_OPTIONS "-Wall" "-Wextra" "-Wconversion" "-Wno-unused-parameter" "-Wno-sign-compare" "-Wno-sign-conversion" "-Werror=maybe-uninitialized" "-Werror=implicit-function-declaration" "-ffunction-sections" "-fdata-sections" "-fPIC" CACHE STRING "Compilation flags")
-#set(C_COMPILE_OPTIONS "" CACHE STRING "Compilation flags for C language.")
+set (C_COMPILE_OPTIONS "-Wno-shift-count-overflow" "-Wno-conversion")
+set(COMPILE_OPTIONS "-Wall" "-Wextra" "-Wconversion" "-Wno-unused-parameter" "-Wno-sign-compare" "-Wno-sign-conversion" "-Werror=maybe-uninitialized" "-Werror=implicit-function-declaration" "-ffunction-sections" "-fdata-sections" "-fPIC" CACHE STRING "Compilation flags")
+set(C_COMPILE_OPTIONS "" CACHE STRING "Compilation flags for C language.")
 #set(CXX_COMPILE_OPTIONS "" CACHE STRING "Compilation flags for C++ language.")
 #set(PROFILING_COMPILE_OPTIONS "-g" "-O0" "-pg" "-Wp,-U_FORTIFY_SOURCE" CACHE STRING "Compilation flags for PROFILING build type.")
 #set(DEBUG_COMPILE_OPTIONS "-g" "-ggdb" "-Wp,-U_FORTIFY_SOURCE" CACHE STRING "Compilation flags for DEBUG build type.")
