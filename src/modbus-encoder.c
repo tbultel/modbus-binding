@@ -221,8 +221,8 @@ static int mbDecodeUInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint1
     return 0;
 }
 
-static int mbEncodeUInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index, void * context) {
-   
+static int mbEncodeUInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+
    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
    uint32_t value= (uint32_t)json_object_get_int (sourceJ);
    MODBUS_SET_INT32_TO_INT16 (*response, index*format->nbreg, (int32_t)value);
