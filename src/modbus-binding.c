@@ -188,7 +188,6 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     // if defined call format init callback
     if (sensor->format->initCB) {
         source.sensor = sensor->uid;
-        source.format = sensor->format->uid;
         source.api = api;
         source.context=NULL;
         err = sensor->format->initCB (&source, argsJ);

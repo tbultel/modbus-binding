@@ -63,7 +63,6 @@ struct ModbusEncoderCbS {
 
 struct ModbusSourceS {
   const char *sensor;
-  const char *format;
   afb_api_t api;
   void *context;
 };
