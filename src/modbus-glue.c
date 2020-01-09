@@ -189,8 +189,9 @@ static int ModBusWriteRegisters (ModbusSensorT *sensor, json_object *queryJ) {
     ModbusFormatCbT *format = sensor->format;
     ModbusRtuT *rtu = sensor->rtu;
     modbus_t *ctx = (modbus_t*)rtu->context;
-    json_object *elemJ;  
-    int err, idx;
+    json_object *elemJ;
+    int err = 0;
+    int idx = 0;
     ModbusSourceT source;
 
     uint16_t *data16= (uint16_t *)alloca(sizeof(uint16_t) * format->nbreg * sensor->count);
