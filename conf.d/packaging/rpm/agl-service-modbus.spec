@@ -20,6 +20,7 @@ BuildRequires:  agl-app-framework-binder-devel
 BuildRequires:  agl-libafb-helpers-devel
 BuildRequires:  agl-libappcontroller-devel
 BuildRequires:  pkgconfig(libsystemd) >= 222
+BuildRequires:  libtool
 Requires:       agl-app-framework-binder
 Requires:		agl-libmodbus
 
@@ -87,8 +88,6 @@ install -m 0644 %{?buildroot}/%{_modbus_datadir}/etc/control-modbus_kingpigeon-c
 %dir %{_modbus_datadir}/etc
 %{_modbus_datadir}/htdocs
 %{_modbus_datadir}/lib/afb-modbus.so
-%{_modbus_datadir}/icon.png
-%{_modbus_datadir}/config.xml
 %{_userunitdir}/%{basename: %SOURCE2}
 %{_sysconfdir}/%{name}/control-modbus.json
 %{_libdir}/libafb-modbus.so
