@@ -68,7 +68,7 @@ popd
 %install
 %make_install -C %{_target_platform}
 install -d %{?buildroot}%{_modbus_datadir}
-mv %{?buildroot}%{_prefix}%{name}/* %{?buildroot}%{_modbus_datadir}
+mv %{?buildroot}%{_prefix}/%{name}/* %{?buildroot}%{_modbus_datadir}
 install -d %{?buildroot}%{_userunitdir}
 install -m 0644 %{SOURCE2} %{?buildroot}%{_userunitdir}
 install -d %{?buildroot}%{_libdir}
