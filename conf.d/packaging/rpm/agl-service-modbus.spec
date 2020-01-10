@@ -61,14 +61,14 @@ Summary:        Modbus plugin raymarine anemometer
 %define __global_compiler_flags -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches %{_hardened_cflags} %{_annotated_cflags}
 mkdir -p %{_target_platform}
 pushd %{_target_platform}
-%cmake -DVERSION=%{version} -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_datadir} -DCONTROL_CONFIG_PATH=%{_sysconfdir}/%{name} ..
+%cmake -DVERSION=%{version} -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCONTROL_CONFIG_PATH=%{_sysconfdir}/%{name} ..
 popd
 %make_build -C %{_target_platform}
-%__make widget -C %{_target_platform}
-
 
 %install
 %make_install -C %{_target_platform}
+install -d %{?buildroot}%{_modbus_datadir}
+mv %{?buildroot}%{_prefix}%{name}/* %{?buildroot}%{_modbus_datadir}
 install -d %{?buildroot}%{_userunitdir}
 install -m 0644 %{SOURCE2} %{?buildroot}%{_userunitdir}
 install -d %{?buildroot}%{_libdir}
@@ -108,4 +108,3 @@ install -m 0644 %{?buildroot}/%{_modbus_datadir}/etc/control-modbus_kingpigeon-c
 %changelog
 * Wed Jan 8 2020 Clément Bénier <clement.benier@iot.bzh>
 - Initial specfile
-
