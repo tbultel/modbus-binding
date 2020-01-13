@@ -1,0 +1,2 @@
+%{_modbus_datadir}/etc/control-modbus_kingpigeon-config.json
+%{_modbus_datadir}/lib/plugins/kingpigeon.ctlso

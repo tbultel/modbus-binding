@@ -1,0 +1,27 @@
+Priority: optional
+Maintainer: Ronan Le Martret <ronan.lemartret@iot.bzh>
+Source: agl-service-modbus
+Build-Depends:
+ debhelper (>= 5),
+ pkg-config,
+ cmake,
+ agl-cmake-apps-module-bin,
+ agl-app-framework-binder-bin,
+ agl-app-framework-binder-dev,
+ lua5.3,
+ liblua5.3-dev,
+ libjson-c-dev,
+ libsystemd-dev,
+Standards-Version: 3.8.2
+Homepage: https://gerrit.automotivelinux.org/gerrit/#/admin/projects/apps/app-afb-test
+
+Package: agl-service-modbus-bin
+Section: libs
+Architecture: any
+Description: Binding to serve an API connected to modbus hardware
+
+Package: agl-service-modbus-dev
+Section: libs
+Architecture: any
+Depends: agl-service-modbus-bin
+Description: Binding to serve an API connected to modbus hardware devel

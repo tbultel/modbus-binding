@@ -1,0 +1,2 @@
+%{_modbus_datadir}/etc/control-modbus_raymarine-anemometer-config.json
+%{_modbus_datadir}/lib/plugins/raymarine-anemometer.ctlso
