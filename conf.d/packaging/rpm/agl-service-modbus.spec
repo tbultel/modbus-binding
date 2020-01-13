@@ -14,15 +14,14 @@ BuildRequires:  cmake
 BuildRequires:  agl-cmake-apps-module
 BuildRequires:  gcc-c++
 BuildRequires:  pkgconfig(json-c)
-BuildRequires:  agl-libmodbus-devel
 BuildRequires:  pkgconfig(lua) >= 5.3
 BuildRequires:  agl-app-framework-binder-devel
 BuildRequires:  agl-libafb-helpers-devel
 BuildRequires:  agl-libappcontroller-devel
 BuildRequires:  pkgconfig(libsystemd) >= 222
+BuildRequires:  pkgconfig(libmodbus) >= 3.1.6
 BuildRequires:  libtool
 Requires:       agl-app-framework-binder
-Requires:		agl-libmodbus
 
 %description
 low can level
