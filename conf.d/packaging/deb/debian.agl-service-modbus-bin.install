@@ -1,8 +1,12 @@
-%dir %{_modbus_datadir}/bin
-%dir %{_modbus_datadir}/var
-%dir %{_modbus_datadir}/etc
-%{_modbus_datadir}/htdocs
-%{_modbus_datadir}/lib/afb-modbus.so
+%dir %{_prefix}/%{name}
+%dir %{_prefix}/%{name}/etc
+%dir %{_prefix}/%{name}/lib
+%dir %{_prefix}/%{name}/lib/plugins
+
+%dir %{_prefix}/%{name}/htdocs
+%{_prefix}/%{name}/htdocs/*
+%{_prefix}/%{name}/lib/afb-modbus.so
 %{_userunitdir}/%{basename: %SOURCE2}
-%{_sysconfdir}/%{name}/control-modbus.json
-%{_libdir}/libafb-modbus.so
+
+%dir %{_prefix}/%{name}/var
+%{_prefix}/%{name}/etc/control-modbus.json.sample

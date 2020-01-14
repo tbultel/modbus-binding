@@ -1,1 +1,2 @@
 /opt/AGL/lib/*/pkgconfig/*.pc
+/opt/AGL/include/*.h
