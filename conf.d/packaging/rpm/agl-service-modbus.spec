@@ -2,6 +2,10 @@
 %define __cmake cmake
 %define _app_prefix %{_prefix}/%{name}
 
+%if 0%{?fedora_version}
+%define debug_package %{nil}
+%endif
+
 Name: agl-service-modbus
 Version: 1.0
 Release: 1%{?dist}
@@ -56,12 +60,25 @@ plugin-raymarine-anemo subpackage.
 
 %build
 #hack because of libmodbus warning conversions
+
+%define builddir %{_builddir}/%{name}-%{version}/build
+
+%if 0%{?fedora_version}
+mkdir -p %{builddir}
+pushd %{builddir}
+%endif
+
 %define __global_compiler_flags -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches %{_hardened_cflags} %{_annotated_cflags}
 %cmake -DVERSION=%{version} -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCONTROL_CONFIG_PATH=%{_prefix}/%{name}/etc ..
-%make_build
+
+%if 0%{?fedora_version}
+popd
+%endif
+
+%make_build -C %{builddir}
 
 %install
-%make_install -C build
+%make_install -C %{builddir}
 install -d %{?buildroot}
 
 install -d %{?buildroot}%{_userunitdir}
