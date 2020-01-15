@@ -66,7 +66,7 @@ static void InfoRtu (afb_req_t request) {
 
     err= wrap_json_unpack(queryJ, "{s?i s?i !}", "verbose", &verbose, "length", &length);
     if (err) {
-        afb_req_fail_f (request, "ListRtu: invalid 'json' query=%s", json_object_get_string(queryJ));
+        afb_req_fail_f (request, "ModbusRtuAdmin", "ListRtu: invalid 'json' query=%s", json_object_get_string(queryJ));
         goto OnErrorExit;
     }
 

@@ -1,2 +1,2 @@
-%{_prefix}/%{name}/etc/control-modbus_kingpigeon-config.json
-%{_prefix}/%{name}/lib/plugins/kingpigeon.ctl.so
+opt/AGL/agl-service-modbus/etc/control-modbus_kingpigeon-config.json
+opt/AGL/agl-service-modbus/lib/plugins/kingpigeon.ctl.so

@@ -73,7 +73,6 @@ set (PKG_REQUIRED_LIST
 	afb-daemon
 	afb-helpers
 	appcontroller
-	lua
 	libmodbus
 )
 

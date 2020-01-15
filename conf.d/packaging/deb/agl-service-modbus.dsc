@@ -22,4 +22,4 @@ Build-Depends: debhelper (>= 5),
  libmodbus-dev (>= 3.1.6),
 DEBTRANSFORM-RELEASE: 1
 Files:
- agl-service-modbus-1.0.tar.g
+ agl-service-modbus-1.0.tar.gz
