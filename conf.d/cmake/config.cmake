@@ -16,6 +16,8 @@
 # limitations under the License.
 ###########################################################################
 
+set(CMAKE_INSTALL_SO_NO_EXE 0)
+
 # Project Info
 # ------------------
 set(PROJECT_NAME agl-service-modbus)
