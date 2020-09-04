@@ -1,4 +1,4 @@
-# Mosbus Binding
+# Modbus Binding
 
 Modbus binding support TCP Modbus with format conversion for multi-register type as int32, Float, ...
 
