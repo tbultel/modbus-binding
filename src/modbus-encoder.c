@@ -296,7 +296,7 @@ static ModbusFormatCbT coreEncodersCB[] = {
   {.uid="INT16"     , .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
   {.uid="INT32"     , .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
   {.uid="UINT32"    , .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
-  {.uid="INT64"     , .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
+  {.uid="INT64"     , .nbreg=4, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
   {.uid="FLOAT_ABCD", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
   {.uid="FLOAT_BADC", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
   {.uid="FLOAT_dcba", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
