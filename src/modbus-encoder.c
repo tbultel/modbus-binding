@@ -305,7 +305,7 @@ static ModbusFormatCbT coreEncodersCB[] = {
   {.uid="INT64"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
   {.uid="FLOAT_ABCD", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
   {.uid="FLOAT_BADC", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
-  {.uid="FLOAT_dcba", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
+  {.uid="FLOAT_DCBA", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
   {.uid="FLOAT_CDAB", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
 
   {.uid= NULL} // must be null terminated
