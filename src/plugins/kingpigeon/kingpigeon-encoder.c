@@ -1,18 +1,9 @@
 /*
- * Copyright (C) 2018 "IoT.bzh"
+ * Copyright (C) 2018-2020 "IoT.bzh"
  * Author "Fulup Ar Foll" <fulup@iot.bzh>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *	 http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at https://opensource.org/licenses/MIT.
  */
 #define MODBUS_GET_INT32_FROM_INT16(tab_int16, index) ((tab_int16[(index)] << 16) + tab_int16[(index) + 1])
 
@@ -103,8 +94,8 @@ static int initRCount (ModbusSourceT *source, json_object *argsJ) {
 
 // encode/decode callbacks
 static ModbusFormatCbT pigeonEncoders[] = {
-    {.uid="devinfo", .info="return KingPigeon Device Info as an array", .nbreg=6, .decodeCB=decodePigeonInfo, .encodeCB=encodePigeonInfo},
-    {.uid="rcount", .info="Return Relative Count from Uint32", .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL, .initCB=initRCount},
+    {.uid="devinfo", .info="json_array", .nbreg=6, .decodeCB=decodePigeonInfo, .encodeCB=encodePigeonInfo},
+    {.uid="rcount", .info="json_integer", .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL, .initCB=initRCount},
     {.uid=NULL} // must be NULL terminated
 };
 

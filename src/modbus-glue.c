@@ -1,19 +1,25 @@
 /*
- * Copyright (C) 2018 "IoT.bzh"
- * Author "Fulup Ar Foll" <fulup@iot.bzh>
+ * Copyright (C) 2015-2020 IoT.bzh Company
+ * Author "Fulup Ar Foll"
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * $RP_BEGIN_LICENSE$
+ * Commercial License Usage
+ *  Licensees holding valid commercial IoT.bzh licenses may use this file in
+ *  accordance with the commercial license agreement provided with the
+ *  Software or, alternatively, in accordance with the terms contained in
+ *  a written agreement between you and The IoT.bzh Company. For licensing terms
+ *  and conditions see https://www.iot.bzh/terms-conditions. For further
+ *  information use the contact form at https://www.iot.bzh/contact.
  *
- *	 http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY Kidx, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * GNU General Public License Usage
+ *  Alternatively, this file may be used under the terms of the GNU General
+ *  Public license version 3. This license is as published by the Free Software
+ *  Foundation and appearing in the file LICENSE.GPLv3 included in the packaging
+ *  of this file. Please review the following information to ensure the GNU
+ *  General Public License requirements will be met
+ *  https://www.gnu.org/licenses/gpl-3.0.html.
+ * $RP_END_LICENSE$
+*/
 
 #define _GNU_SOURCE
 
@@ -237,10 +243,10 @@ OnErrorExit:
 
 // Modbus Read/Write per register type/function Callback 
 static ModbusFunctionCbT ModbusFunctionsCB[]= {
-  {.uid="COIL_INPUT",      .type=MB_COIL_INPUT,       .info="Bollean ReadOnly register" , .readCB=ModBusReadBits},
-  {.uid="COIL_HOLDING",    .type=MB_COIL_STATUS,      .info="Bollean ReadWrite register", .readCB=ModBusReadBits, .writeCB=ModBusWriteBits},
+  {.uid="COIL_INPUT",      .type=MB_COIL_INPUT,       .info="Boolean ReadOnly register" , .readCB=ModBusReadBits},
+  {.uid="COIL_HOLDING",    .type=MB_COIL_STATUS,      .info="Boolean ReadWrite register", .readCB=ModBusReadBits, .writeCB=ModBusWriteBits},
   {.uid="REGISTER_INPUT",  .type=MB_REGISTER_INPUT,   .info="INT16 ReadOnly register",    .readCB=ModBusReadRegisters},
-  {.uid="REGISTER_HOLDING",.type=MB_REGISTER_HOLDING, .info="INT16 ReaWrite register",    .readCB=ModBusReadRegisters, .writeCB=ModBusWriteRegisters},
+  {.uid="REGISTER_HOLDING",.type=MB_REGISTER_HOLDING, .info="INT16 ReadWrite register",    .readCB=ModBusReadRegisters, .writeCB=ModBusWriteRegisters},
 
   {.uid = NULL} // should be NULL terminated
 };
@@ -501,18 +507,44 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
         switch (verbose) {
             default:
             case 1:
-                wrap_json_pack (&elemJ, "{ss ss ss si si}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
+                err= wrap_json_pack (&elemJ, "{ss ss ss si si}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
                      , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count);
                 break;
             case 2:
                 err = (sensor->function->readCB) (sensor, &dataJ);
                 if (err) dataJ=NULL;
-                wrap_json_pack (&elemJ, "{ss ss ss si si so}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
+                err= wrap_json_pack (&elemJ, "{ss ss ss si si so}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
                      , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count, "data", dataJ);
-        }
-        json_object_array_add (*responseJ, elemJ);
+                break;     
+            case 3:
+                // if not usage try to build one
+                if (!sensor->usage) {
+                    char *readcmd="", *writecmd="", *subcmd="", *unsubcmd="";
+                    if  (sensor->function->readCB) {
+                        readcmd="get";
+                        subcmd="subscribe";
+                        unsubcmd="unsubscribe";
+                    } 
+                    if  (sensor->function->writeCB) {
+                        writecmd="set|";
+                    } 
+                    asprintf ((char**)&sensor->usage, "action=[%s|%s%s|%s] data=%s", readcmd, writecmd, subcmd, unsubcmd, sensor->format->info);
+                }
 
-        fprintf (stderr, "*** %s **", json_object_get_string(elemJ));
+                err=wrap_json_pack (&elemJ, "{ss ss* ss* ss* ss* si*}"
+                    , "uid",   sensor->uid
+                    , "info",  sensor->info
+                    , "usage", sensor->usage
+                    , "type",  sensor->function->info
+                    , "format",sensor->format->uid
+                    , "count", sensor->count
+                    );
+                break;    
+        }
+        if (!err) {
+           // fprintf (stderr, "%s **\n", json_object_get_string(elemJ));
+           json_object_array_add (*responseJ, elemJ);
+        }
     }
 }
 

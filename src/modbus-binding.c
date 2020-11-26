@@ -1,22 +1,25 @@
 /*
-* Copyright (C) 2016-2019 "IoT.bzh"
-* Author Fulup Ar Foll <fulup@iot.bzh>
-* Author Fulup Ar Foll <romain@iot.bzh>
-* Author Fulup Ar Foll <sebastien@iot.bzh>
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+ * Copyright (C) 2015-2020 IoT.bzh Company
+ * Author "Fulup Ar Foll"
+ *
+ * $RP_BEGIN_LICENSE$
+ * Commercial License Usage
+ *  Licensees holding valid commercial IoT.bzh licenses may use this file in
+ *  accordance with the commercial license agreement provided with the
+ *  Software or, alternatively, in accordance with the terms contained in
+ *  a written agreement between you and The IoT.bzh Company. For licensing terms
+ *  and conditions see https://www.iot.bzh/terms-conditions. For further
+ *  information use the contact form at https://www.iot.bzh/contact.
+ *
+ * GNU General Public License Usage
+ *  Alternatively, this file may be used under the terms of the GNU General
+ *  Public license version 3. This license is as published by the Free Software
+ *  Foundation and appearing in the file LICENSE.GPLv3 included in the packaging
+ *  of this file. Please review the following information to ensure the GNU
+ *  General Public License requirements will be met
+ *  https://www.gnu.org/licenses/gpl-3.0.html.
+ * $RP_END_LICENSE$
 */
-
 
 // Le contexte de sensor loader au moment de l'API n'est retrouvé avec le request ****
 
@@ -37,7 +40,7 @@ static int ModbusConfig(afb_api_t api, CtlSectionT *section, json_object *rtusJ)
 // Config Section definition (note: controls section index should match handle
 // retrieval in HalConfigExec)
 static CtlSectionT ctrlSections[] = {
-    { .key = "plugins", .loadCB = PluginConfig, .handle= mbEncoderRegister},
+    { .key = "plugins",.loadCB = PluginConfig, .handle= mbEncoderRegister},
     { .key = "onload", .loadCB = OnloadConfig },
     { .key = "modbus", .loadCB = ModbusConfig },
     { .key = NULL }
@@ -59,23 +62,20 @@ static void InfoRtu (afb_req_t request) {
     json_object *elemJ;
     int err, idx;
     int verbose=0;
-    int length =0;
     ModbusRtuT *rtus = (ModbusRtuT*) afb_req_get_vcbdata(request);
     json_object *queryJ =  afb_req_json(request);
     json_object *responseJ= json_object_new_array();
 
-    err= wrap_json_unpack(queryJ, "{s?i s?i !}", "verbose", &verbose, "length", &length);
+    err= wrap_json_unpack(queryJ, "{s?i s?i !}", "verbose", &verbose);
     if (err) {
         afb_req_fail_f (request, "ModbusRtuAdmin", "ListRtu: invalid 'json' query=%s", json_object_get_string(queryJ));
         goto OnErrorExit;
     }
 
     // loop on every defined RTU
-    for (idx=0; rtus[idx].uid; idx++) {
+    if (verbose) {
+        for (idx=0; rtus[idx].uid; idx++) {
         switch (verbose) {
-            case 0:
-                wrap_json_pack (&elemJ, "{ss ss}", "uid", rtus[idx].uid);
-                break;
             case 1:
             default:
                 wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);
@@ -89,10 +89,34 @@ static void InfoRtu (afb_req_t request) {
                 }
                 break;
         }
-
         json_object_array_add(responseJ, elemJ);
+        }   
+    } else {
+        // build global info page for developper dynamic HTML5 page
+        json_object *globalJ, *rtuJ, *rtusJ, *infoJ, *sensorsJ, *admincmdJ;
+        CtlConfigT* ctlConfig = (CtlConfigT*)afb_api_get_userdata(afb_req_get_api(request));
+        err=wrap_json_pack (&globalJ, "{ss ss* ss* ss*}", "uid", ctlConfig->uid, "info",ctlConfig->info, "version", ctlConfig->version, "author", ctlConfig->author);
+        fprintf (stderr, "uid=%s %s **\n", ctlConfig->uid, json_object_get_string(globalJ));
+
+        rtusJ= json_object_new_array();
+        for (idx=0; rtus[idx].uid; idx++) {
+            err= ModbusRtuIsConnected (request->api, &rtus[idx]);
+            wrap_json_pack (&infoJ, "{ss ss* ss* sb}", "uid", rtus[idx].uid, "uri", rtus[idx].uri, "info", rtus[idx].info, "online", err>=0);;
+            //fprintf (stderr, "infoJ %s **\n", json_object_get_string(infoJ));
+        
+            ModbusRtuSensorsId (&rtus[idx], 3, &sensorsJ);
+            wrap_json_pack (&admincmdJ, "{ss ss ss ss}", "uid", rtus[idx].uid, "info","RTU admin cmd", "api", rtus[idx].adminapi, "usage", "action=[info|connect|disconnect] verbose=1-3");
+            json_object_array_put_idx (sensorsJ, 0, admincmdJ); // add admin verb before sensors
+
+            // create group object with rtu_info and rtu-sensors
+            wrap_json_pack (&rtuJ, "{so so}", "metadata", infoJ, "verbs", sensorsJ);
+            json_object_array_add(rtusJ, rtuJ); 
+            //fprintf (stderr, "sensors %s **\n", json_object_get_string(sensorsJ));
+        }
+
+        //fprintf (stderr, "rtus %s **\n", json_object_get_string(rtusJ));
+        wrap_json_pack (&responseJ, "{so so}", "metadata", globalJ, "groups", rtusJ); 
     }
-   
     afb_req_success(request, responseJ, NULL);
     return;
 
@@ -153,21 +177,19 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     sensor->iddle = rtu->iddle;
     sensor->count = 1;
 
-    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?o !}",
+    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?s,s?i,s?i,s?i,s?o !}",
                 "uid", &sensor->uid,
                 "type", &type,
                 "register", &sensor->registry,
                 "info", &sensor->info,
+                "usage", &sensor->usage,
                 "privilege", &privilege,
                 "format", &format,
                 "hertz", &sensor->hertz,
                 "iddle", &sensor->iddle,
                 "count", &sensor->count,
                 "args", &argsJ);
-    if (err) {
-        AFB_API_ERROR(api, "SensorLoadOne: Fail to parse sensor: %s", json_object_to_json_string(sensorJ));
-        goto OnErrorExit;
-    }
+    if (err) goto ParsingErrorExit;
 
     // find modbus register type/function callback
     sensor->function = mbFunctionFind (api, type);
@@ -208,11 +230,15 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
 
     return 0;
 
+ParsingErrorExit:
+    AFB_API_ERROR(api, "SensorLoadOne: Fail to parse sensor: %s", json_object_to_json_string(sensorJ));
+    return -1;
+
 TypeErrorExit:
-    AFB_API_ERROR(api, "SensorLoadOne: missing or invalid Modus Type code JSON=%s", json_object_to_json_string(sensorJ));
+    AFB_API_ERROR(api, "SensorLoadOne: missing/invalid Format JSON=%s", json_object_to_json_string(sensorJ));
     return -1;
 FunctionErrorExit:
-    AFB_API_ERROR(api, "SensorLoadOne: missing or invalid Modus Type=%s JSON=%s", type, json_object_to_json_string(sensorJ));
+    AFB_API_ERROR(api, "SensorLoadOne: missing/invalid Modus Type=%s JSON=%s", type, json_object_to_json_string(sensorJ));
     return -1;
 OnErrorExit:
     return -1;    
@@ -222,7 +248,6 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     int err = 0;
     json_object *sensorsJ;
     afb_auth_t *authent=NULL;
-    char *adminCmd;
 
     // should already be allocated
     assert (rtuJ); 
@@ -261,10 +286,10 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     // set default pooling frequency
     if (!rtu->hertz) rtu->hertz=MB_DEFAULT_POLLING_FEQ;
 
-    err=asprintf (&adminCmd, "%s/%s", rtu->prefix, "admin");
-    err= afb_api_add_verb(api, adminCmd, rtu->info, RtuDynRequest, rtu, authent, 0, 0);
+    err=asprintf ((char**)&rtu->adminapi, "%s/%s", rtu->prefix, "admin");
+    err= afb_api_add_verb(api, rtu->adminapi, rtu->info, RtuDynRequest, rtu, authent, 0, 0);
     if (err) {
-        AFB_API_ERROR(api, "ModbusLoadOne: fail to register API uid=%s verb=%s info=%s", rtu->uid, adminCmd, rtu->info);
+        AFB_API_ERROR(api, "ModbusLoadOne: fail to register API uid=%s verb=%s info=%s", rtu->uid, rtu->adminapi, rtu->info);
         goto OnErrorExit;
     }
 
@@ -344,9 +369,9 @@ static int CtrlInitOneApi(afb_api_t api) {
     int err = 0;
 
     // retrieve section config from api handle
-    CtlConfigT* ctrlConfig = (CtlConfigT*)afb_api_get_userdata(api);
+    CtlConfigT* ctlConfig = (CtlConfigT*)afb_api_get_userdata(api);
 
-    err = CtlConfigExec(api, ctrlConfig);
+    err = CtlConfigExec(api, ctlConfig);
     if (err) {
         AFB_API_ERROR(api, "Error at CtlConfigExec step");
         return err;
@@ -356,13 +381,13 @@ static int CtrlInitOneApi(afb_api_t api) {
 }
 
 static int CtrlLoadOneApi(void* vcbdata, afb_api_t api) {
-    CtlConfigT* ctrlConfig = (CtlConfigT*)vcbdata;
+    CtlConfigT* ctlConfig = (CtlConfigT*)vcbdata;
 
     // save closure as api's data context
-    afb_api_set_userdata(api, ctrlConfig);
+    afb_api_set_userdata(api, ctlConfig);
 
     // load section for corresponding API
-    int error = CtlLoadSections(api, ctrlConfig, ctrlSections);
+    int error = CtlLoadSections(api, ctlConfig, ctrlSections);
 
     // init and seal API function
     afb_api_on_init(api, CtrlInitOneApi);
@@ -378,7 +403,7 @@ int afbBindingEntry(afb_api_t api) {
 
     AFB_API_NOTICE(api, "Controller in afbBindingEntry");
 
-    // register Code Encoders before plugin get loaded
+    // register builtin encoders before plugin get loaded
     mbRegisterCoreEncoders();
 
     envConfig= getenv("CONTROL_CONFIG_PATH");
@@ -396,17 +421,17 @@ int afbBindingEntry(afb_api_t api) {
     }
 
     // load config file and create API
-    CtlConfigT* ctrlConfig = CtlLoadMetaData(api, configPath);
-    if (!ctrlConfig) {
+    CtlConfigT* ctlConfig = CtlLoadMetaData(api, configPath);
+    if (!ctlConfig) {
         AFB_API_ERROR(api, "afbBindingEntry No valid control config file in:\n-- %s", configPath);
         status = ERROR;
         goto _exit_afbBindingEntry;
     }
 
-    AFB_API_NOTICE(api, "Controller API='%s' info='%s'", ctrlConfig->api, ctrlConfig->info);
+    AFB_API_NOTICE(api, "Controller API='%s' info='%s'", ctlConfig->api, ctlConfig->info);
 
     // create one API per config file (Pre-V3 return code ToBeChanged)
-    handle = afb_api_new_api(api, ctrlConfig->api, ctrlConfig->info, 1, CtrlLoadOneApi, ctrlConfig);
+    handle = afb_api_new_api(api, ctlConfig->api, ctlConfig->info, 1, CtrlLoadOneApi, ctlConfig);
     status = (handle) ? 0 : -1;
 
 _exit_afbBindingEntry:

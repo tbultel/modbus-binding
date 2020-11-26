@@ -1,19 +1,25 @@
 /*
- * Copyright (C) 2018 "IoT.bzh"
- * Author "Fulup Ar Foll" <fulup@iot.bzh>
+ * Copyright (C) 2015-2020 IoT.bzh Company
+ * Author "Fulup Ar Foll"
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * $RP_BEGIN_LICENSE$
+ * Commercial License Usage
+ *  Licensees holding valid commercial IoT.bzh licenses may use this file in
+ *  accordance with the commercial license agreement provided with the
+ *  Software or, alternatively, in accordance with the terms contained in
+ *  a written agreement between you and The IoT.bzh Company. For licensing terms
+ *  and conditions see https://www.iot.bzh/terms-conditions. For further
+ *  information use the contact form at https://www.iot.bzh/contact.
  *
- *	 http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY Kidx, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * GNU General Public License Usage
+ *  Alternatively, this file may be used under the terms of the GNU General
+ *  Public license version 3. This license is as published by the Free Software
+ *  Foundation and appearing in the file LICENSE.GPLv3 included in the packaging
+ *  of this file. Please review the following information to ensure the GNU
+ *  General Public License requirements will be met
+ *  https://www.gnu.org/licenses/gpl-3.0.html.
+ * $RP_END_LICENSE$
+*/
 
 #define _GNU_SOURCE
 
@@ -292,15 +298,15 @@ OnErrorExit:
 }
 
 static ModbusFormatCbT coreEncodersCB[] = {
-  {.uid="BOOL"      , .nbreg=1, .decodeCB=mbDecodeBoolean, .encodeCB=mbEncodeBoolean},
-  {.uid="INT16"     , .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
-  {.uid="INT32"     , .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
-  {.uid="UINT32"    , .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
-  {.uid="INT64"     , .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
-  {.uid="FLOAT_ABCD", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
-  {.uid="FLOAT_BADC", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
-  {.uid="FLOAT_dcba", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
-  {.uid="FLOAT_CDAB", .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
+  {.uid="BOOL"      , .info="json_boolean", .nbreg=1, .decodeCB=mbDecodeBoolean, .encodeCB=mbEncodeBoolean},
+  {.uid="INT16"     , .info="json_integer", .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
+  {.uid="INT32"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
+  {.uid="UINT32"    , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
+  {.uid="INT64"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
+  {.uid="FLOAT_ABCD", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
+  {.uid="FLOAT_BADC", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
+  {.uid="FLOAT_dcba", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
+  {.uid="FLOAT_CDAB", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
 
   {.uid= NULL} // must be null terminated
 };

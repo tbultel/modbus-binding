@@ -12,7 +12,7 @@
         "info": "Plugin to handle user custom registry encoding/decoding",
         "spath": "package/lib/:./lib/plugins:./var",
         "libs": [
-          "raymarine-anemometer.ctl.so"
+          "raymarine-anemometer.ctlso"
         ]
       }
     ],

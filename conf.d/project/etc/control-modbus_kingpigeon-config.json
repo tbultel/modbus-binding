@@ -12,7 +12,7 @@
         "info": "Plugin to handle user custom registry encoding/decoding",
         "spath": "package/lib/:./lib/plugins:./var",
         "libs": [
-          "kingpigeon.ctl.so"
+          "kingpigeon.ctlso"
         ]
       }
     ], 
@@ -30,14 +30,16 @@
         "sensors": [
           {
             "uid": "PRODUCT_INFO",
-            "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
-            "type": "Register_input",
-            "format" : "plugin://king-pigeon#devinfo",
             "register" : 26,
+            "type": "Register_input",
+            "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
+            "usage": "action= get response=json_array",
+            "format" : "plugin://king-pigeon#devinfo",
             "privilege": "special privilege"
           },
           {
             "uid": "D01_SWITCH",
+            "info": "Demo switch",
             "type": "Coil_Holding",
             "format" : "BOOL",
             "register" : 0,
@@ -45,6 +47,7 @@
           },
           {
             "uid": "DIN01_STATUS",
+            "info": "Demo light",
             "type": "Coil_Input",
             "format" : "BOOL",
             "register" : 0
@@ -52,6 +55,7 @@
           {
             "uid": "DIN01_COUNTER",
             "type": "Register_Holding",
+            "info": "Rotation counter",
             "format" : "INT32",
             "iddle" : 25,
             "register" : 3

@@ -1,18 +1,9 @@
 /*
- * Copyright (C) 2018 "IoT.bzh"
+ * Copyright (C) 2018-2020 "IoT.bzh"
  * Author "Arthur Guyader" <arthur.guyader@iot.bzh>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *	 http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at https://opensource.org/licenses/MIT.
  */
 
 #define _GNU_SOURCE
@@ -153,8 +144,8 @@ OnErrorExit:
 }
 // encode/decode callbacks
 static ModbusFormatCbT cesEncoders[] = {
-    {.uid="windDirection", .info="return wind direction", .nbreg=2, .decodeCB=decodeWindDirection, .encodeCB=encodeWindDirection, .initCB=initWindDirection},
-    {.uid="windSpeed", .info="return wind speed", .nbreg=1, .decodeCB=decodeWindSpeed, .encodeCB=encodeWindSpeed, .initCB=initWindSpeed},
+    {.uid="windDirection", .info="json_integer(speed)", .nbreg=2, .decodeCB=decodeWindDirection, .encodeCB=encodeWindDirection, .initCB=initWindDirection},
+    {.uid="windSpeed", .info="json_integer(angle)", .nbreg=1, .decodeCB=decodeWindSpeed, .encodeCB=encodeWindSpeed, .initCB=initWindSpeed},
     {.uid=NULL} // must be NULL terminated
 };
 
