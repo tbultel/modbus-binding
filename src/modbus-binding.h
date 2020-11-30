@@ -95,6 +95,7 @@ struct ModbusSensorS {
   const char *info;
   const char *usage;
   const char *sample;
+  const char *apiverb;
   const uint registry;
   uint count;
   uint hertz;

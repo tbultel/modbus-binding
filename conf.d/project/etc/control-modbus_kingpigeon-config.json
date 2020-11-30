@@ -4,7 +4,7 @@
       "uid": "modbus-svc",
       "version": "1.0",
       "api": "modbus",
-      "info": "Generic KingPigeon default 192.168.1.110:502 slaveid=1 Test Config"
+      "info": "Generic KingPigeon default Test Config"
     },
     "plugins": [
       {

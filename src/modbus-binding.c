@@ -93,7 +93,7 @@ static void InfoRtu (afb_req_t request) {
         }   
     } else {
         // build global info page for developper dynamic HTML5 page
-        json_object *globalJ, *rtuJ, *rtusJ, *infoJ, *sensorsJ, *admincmdJ;
+        json_object *globalJ, *rtuJ, *rtusJ, *statusJ, *infoJ, *sensorsJ, *admincmdJ;
         CtlConfigT* ctlConfig = (CtlConfigT*)afb_api_get_userdata(afb_req_get_api(request));
         err=wrap_json_pack (&globalJ, "{ss ss* ss* ss*}", "uid", ctlConfig->uid, "info",ctlConfig->info, "version", ctlConfig->version, "author", ctlConfig->author);
         fprintf (stderr, "uid=%s %s **\n", ctlConfig->uid, json_object_get_string(globalJ));
@@ -101,11 +101,12 @@ static void InfoRtu (afb_req_t request) {
         rtusJ= json_object_new_array();
         for (idx=0; rtus[idx].uid; idx++) {
             err= ModbusRtuIsConnected (request->api, &rtus[idx]);
-            wrap_json_pack (&infoJ, "{ss ss* ss* sb}", "uid", rtus[idx].uid, "uri", rtus[idx].uri, "info", rtus[idx].info, "online", err>=0);;
+            wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "online", err>=0);
+            wrap_json_pack (&infoJ, "{ss ss* so*}", "uid", rtus[idx].uid, "info", rtus[idx].info, "status", statusJ);;
             //fprintf (stderr, "infoJ %s **\n", json_object_get_string(infoJ));
         
             ModbusRtuSensorsId (&rtus[idx], 3, &sensorsJ);
-            wrap_json_pack (&admincmdJ, "{ss ss ss ss}", "uid", rtus[idx].uid, "info","RTU admin cmd", "api", rtus[idx].adminapi, "usage", "action=[info|connect|disconnect] verbose=1-3");
+            wrap_json_pack (&admincmdJ, "{ss ss ss ss}", "uid", rtus[idx].uid, "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", "action=[info|connect|disconnect] verbose=1-3");
             json_object_array_put_idx (sensorsJ, 0, admincmdJ); // add admin verb before sensors
 
             // create group object with rtu_info and rtu-sensors
@@ -164,7 +165,6 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     const char *privilege=NULL;
     afb_auth_t *authent=NULL;
     json_object *argsJ=NULL;
-    char* apiverb;
     ModbusSourceT source;
 
     // should already be allocated
@@ -208,6 +208,8 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
        authent->text = privilege;
     }
 
+    asprintf ((char**) &sensor->apiverb, "%s/%s", rtu->prefix, sensor->uid);
+    
     // if defined call format init callback
     if (sensor->format->initCB) {
         source.sensor = sensor->uid;
@@ -215,17 +217,16 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
         source.context=NULL;
         err = sensor->format->initCB (&source, argsJ);
         if (err) {
-            AFB_API_ERROR(api, "SensorLoadOne: fail to init format verb=%s", apiverb);
+            AFB_API_ERROR(api, "SensorLoadOne: fail to init format verb=%s", sensor->apiverb);
             goto OnErrorExit;
         }
         // remember context for further encode/decode callback 
         sensor->context = source.context;
     }
 
-    err=asprintf (&apiverb, "%s/%s", rtu->prefix, sensor->uid);
-    err = afb_api_add_verb(api, (const char*) apiverb, sensor->info, SensorDynRequest, sensor, authent, 0, 0);
+    err = afb_api_add_verb(api, sensor->apiverb, sensor->info, SensorDynRequest, sensor, authent, 0, 0);
     if (err) {
-        AFB_API_ERROR(api, "SensorLoadOne: fail to register API verb=%s", apiverb);
+        AFB_API_ERROR(api, "SensorLoadOne: fail to register API verb=%s", sensor->apiverb);
         goto OnErrorExit;
     }
 
