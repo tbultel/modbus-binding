@@ -33,7 +33,7 @@
             "register" : 26,
             "type": "Register_input",
             "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
-            "usage": "action= get response=json_array",
+            "usage": "{'action': 'get', 'response': 'json_array'}",
             "format" : "plugin://king-pigeon#devinfo",
             "privilege": "special privilege"
           },
@@ -43,14 +43,24 @@
             "type": "Coil_Holding",
             "format" : "BOOL",
             "register" : 0,
-            "privilege": "special privilege"
+            "privilege": "special privilege",
+            "sample": [
+              {"action":"set", "data":"true"},
+              {"action":"get"},
+              {"action":"subscribe"}
+            ]
           },
           {
             "uid": "DIN01_STATUS",
             "info": "Demo light",
             "type": "Coil_Input",
             "format" : "BOOL",
-            "register" : 0
+            "register" : 0,
+            "sample": [
+              {"action":"set", "data":"true"},
+              {"action":"get"},
+              {"action":"subscribe"}
+            ]
           },
           {
             "uid": "DIN01_COUNTER",
@@ -58,7 +68,11 @@
             "info": "Rotation counter",
             "format" : "INT32",
             "iddle" : 25,
-            "register" : 3
+            "register" : 3,
+            "sample": [
+              {"action":"set", "data":0},
+              {"action":"subscribe"}
+            ]
           },
           {
             "uid": "D01_FREQUENCY",

@@ -519,24 +519,23 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
             case 3:
                 // if not usage try to build one
                 if (!sensor->usage) {
-                    char *readcmd="", *writecmd="", *subcmd="", *unsubcmd="";
+                    char *readcmd="", *writecmd="";
                     if  (sensor->function->readCB) {
-                        readcmd="get";
-                        subcmd="subscribe";
-                        unsubcmd="unsubscribe";
+                        readcmd="'get', 'subscribe', 'unsubscribe'";
                     } 
                     if  (sensor->function->writeCB) {
-                        writecmd="set|";
+                        writecmd=",'set";
                     } 
-                    asprintf ((char**)&sensor->usage, "action=[%s|%s%s|%s] data=%s", readcmd, writecmd, subcmd, unsubcmd, sensor->format->info);
+                    asprintf ((char**)&sensor->usage, "{'action':['%s''%s'], 'data':'%s'", readcmd, writecmd, sensor->format->info);
                 }
 
-                err=wrap_json_pack (&elemJ, "{ss ss* ss* ss* ss* si*}"
+                err=wrap_json_pack (&elemJ, "{ss ss* ss* ss* ss* so* si*}"
                     , "uid",   sensor->uid
                     , "info",  sensor->info
                     , "usage", sensor->usage
                     , "type",  sensor->function->info
                     , "format",sensor->format->uid
+                    , "sample",sensor->sample
                     , "count", sensor->count
                     );
                 break;    

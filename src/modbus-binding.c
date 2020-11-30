@@ -177,7 +177,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     sensor->iddle = rtu->iddle;
     sensor->count = 1;
 
-    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?s,s?i,s?i,s?i,s?o !}",
+    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?s,s?i,s?i,s?i,s?o,s?o !}",
                 "uid", &sensor->uid,
                 "type", &type,
                 "register", &sensor->registry,
@@ -188,6 +188,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
                 "hertz", &sensor->hertz,
                 "iddle", &sensor->iddle,
                 "count", &sensor->count,
+                "sample", &sensor->sample,
                 "args", &argsJ);
     if (err) goto ParsingErrorExit;
 
