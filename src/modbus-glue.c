@@ -496,7 +496,7 @@ OnErrorExit:
 }
 
 void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) {
-    json_object *elemJ, *dataJ;
+    json_object *elemJ, *dataJ, *actionsJ;
     ModbusSensorT *sensor;
     int err;
     *responseJ= json_object_new_array();
@@ -519,23 +519,27 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
             case 3:
                 // if not usage try to build one
                 if (!sensor->usage) {
-                    char *readcmd="", *writecmd="";
-                    if  (sensor->function->readCB) {
-                        readcmd="'get', 'subscribe', 'unsubscribe'";
-                    } 
+                    actionsJ= json_object_new_array();
                     if  (sensor->function->writeCB) {
-                        writecmd="'set',";
+                        json_object_array_add (actionsJ, json_object_new_string("set"));
                     } 
-                    asprintf ((char**)&sensor->usage, "{'action':[%s %s], 'data':'%s'}", writecmd, readcmd, sensor->format->info);
+                    if  (sensor->function->readCB) {
+                        json_object_array_add (actionsJ, json_object_new_string("get"));
+                        json_object_array_add (actionsJ, json_object_new_string("subscribe"));
+                        json_object_array_add (actionsJ, json_object_new_string("unsubscribe"));
+                    } 
+                    wrap_json_pack (&sensor->usage, "{so ss*}", "action", actionsJ, "data", sensor->format->info);
+                    // fprintf (stderr, "usage %s **\n", json_object_get_string(sensor->usage));
+
                 }
 
-                err=wrap_json_pack (&elemJ, "{ss ss ss ss* ss* ss* so* si*}"
+                err=wrap_json_pack (&elemJ, "{ss ss ss ss* ss* so* so* si*}"
                     , "uid",   sensor->uid
                     , "info",  sensor->info
-                    , "usage", sensor->usage
                     , "verb",  sensor->apiverb
                     , "type",  sensor->function->info
                     , "format",sensor->format->uid
+                    , "usage", sensor->usage
                     , "sample",sensor->sample
                     , "count", sensor->count
                     );

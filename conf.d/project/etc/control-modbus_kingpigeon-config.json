@@ -33,7 +33,7 @@
             "register" : 26,
             "type": "Register_input",
             "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
-            "usage": "{'action': 'get', 'response': 'json_array'}",
+            "usage": {"action": "get", "response": "json_array"},
             "format" : "plugin://king-pigeon#devinfo",
             "privilege": "special privilege"
           },

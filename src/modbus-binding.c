@@ -93,7 +93,7 @@ static void InfoRtu (afb_req_t request) {
         }   
     } else {
         // build global info page for developper dynamic HTML5 page
-        json_object *globalJ, *rtuJ, *rtusJ, *statusJ, *sensorsJ, *admincmdJ;
+        json_object *globalJ, *rtuJ, *rtusJ, *statusJ, *sensorsJ, *admincmdJ, *usageJ, *actionsJ;
         CtlConfigT* ctlConfig = (CtlConfigT*)afb_api_get_userdata(afb_req_get_api(request));
         err=wrap_json_pack (&globalJ, "{ss ss* ss* ss*}", "uid", ctlConfig->uid, "info",ctlConfig->info, "version", ctlConfig->version, "author", ctlConfig->author);
         fprintf (stderr, "uid=%s %s **\n", ctlConfig->uid, json_object_get_string(globalJ));
@@ -104,8 +104,13 @@ static void InfoRtu (afb_req_t request) {
             wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "online", err>=0);
         
             ModbusRtuSensorsId (&rtus[idx], 3, &sensorsJ);
-            wrap_json_pack (&admincmdJ, "{ss ss ss ss}", "uid", rtus[idx].uid, "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", "action=[info|connect|disconnect] verbose=1-3");
+
+            wrap_json_pack (&actionsJ, "[s s s]", "info", "connect", "disconnect");
+            wrap_json_pack (&usageJ, "{so, si}", "action", actionsJ, "verbose", 3);
+            wrap_json_pack (&admincmdJ, "{ss ss ss so}", "uid", "admin", "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", usageJ);
             json_object_array_put_idx (sensorsJ, 0, admincmdJ); // add admin verb before sensors
+            fprintf (stderr, "sensors %s **\n", json_object_get_string(admincmdJ));
+
 
             // create group object with rtu_info and rtu-sensors
             wrap_json_pack (&rtuJ, "{ss ss* so* so}", "uid", rtus[idx].uid, "info", rtus[idx].info, "status", statusJ, "verbs", sensorsJ);
@@ -175,17 +180,17 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     sensor->iddle = rtu->iddle;
     sensor->count = 1;
 
-    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?s,s?i,s?i,s?i,s?o,s?o !}",
+    err = wrap_json_unpack(sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?o,s?o,s?o !}",
                 "uid", &sensor->uid,
                 "type", &type,
                 "register", &sensor->registry,
                 "info", &sensor->info,
-                "usage", &sensor->usage,
                 "privilege", &privilege,
                 "format", &format,
                 "hertz", &sensor->hertz,
                 "iddle", &sensor->iddle,
                 "count", &sensor->count,
+                "usage", &sensor->usage,
                 "sample", &sensor->sample,
                 "args", &argsJ);
     if (err) goto ParsingErrorExit;

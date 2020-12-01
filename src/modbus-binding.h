@@ -93,8 +93,8 @@ struct ModbusSourceS {
 struct ModbusSensorS {
   const char *uid;
   const char *info;
-  const char *usage;
-  const char *sample;
+  json_object *usage;
+  json_object *sample;
   const char *apiverb;
   const uint registry;
   uint count;
