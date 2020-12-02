@@ -3,23 +3,18 @@
 Modbus binding support TCP Modbus with format conversion for multi-register type as int32, Float, ...
 
 ## Dependencies:
- * AGL application framework 'agl-app-framework-binder-devel'
- * AGL controller 'agl-libappcontroller-devel'
- * AGL helpers 'agl-libafb-helpers-devel'
- * AGL cmake template 'agl-cmake-apps-module'
+ * AGL application framework 'afb-binder'
+ * AGL binding 'afb-binding-devel'
+ * AGL controller 'afb-libcontroller-devel'
+ * AGL helpers 'afb-libhelpers-devel'
+ * AGL cmake template 'afb-cmake-modules'
  * Libmodbus
  * Lua
 
 ## AGL dependencies:
  * Declare AGL repository: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/2-download-packages.html#install-the-repository)
  * Install AGL controller: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controller.html)
- * Install LibModbus
-
- ```
-  # if you did not logout, don't forget to source AGL environnement
-  source /etc/profile.d/agl-app-framework-binder.sh
- ```
-
+ * Install LibModbus (should be avaliable for most distro) if not install from source
     + download from https://libmodbus.org/download/
     + cd libmodbus-3.1.6/
     + ./configure --prefix=/opt/libmodbus-3.1.6
@@ -42,13 +37,13 @@ check default config with browser at http://192.168.1.110
 
 ### Start Sample Binder
 ```
-afb-daemon --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --token= --verbose
+afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --verbose
 open binding UI with browser at localhost:1234
 ```
 
 ### Adding your own config
 
-Json config file is selected from *afb-daemon --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is use to select a specific config. As example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
+Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is use to select a specific config. As example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
 
 You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environement variable. For further information, check AGL controller documentation [here](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controllerConfig.html)
 
@@ -57,7 +52,7 @@ You may also choose to force your config file by exporting CONTROL_CONFIG_PATH e
  
 ```
 export CONTROL_CONFIG_PATH="$HOME/my-agl-config"
-afb-daemon --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --token= --verbose
+afb-binder --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --verbose
 ```
 
 
