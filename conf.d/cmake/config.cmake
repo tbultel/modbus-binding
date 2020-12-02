@@ -72,7 +72,7 @@ set (gcc_minimal_version 4.9)
 # -----------------------------
 set (PKG_REQUIRED_LIST
 	json-c
-	afb-daemon
+	afb-binding
 	afb-helpers
 	appcontroller
 	libmodbus
@@ -84,7 +84,7 @@ set (PKG_REQUIRED_LIST
 if(IS_DIRECTORY $ENV{HOME}/opt/afb-monitoring)
 set(MONITORING_ALIAS "--alias=/monitoring:$ENV{HOME}/opt/afb-monitoring")
 endif()
-set(CLOSING_MESSAGE "Debug from buildir: afb-daemon --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. --roothttp=../../htdocs --token= -vvv")
+set(CLOSING_MESSAGE "Debug from buildir: afb-binder --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. --roothttp=../../htdocs -vvv")
 set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install ${PROJECT_NAME}.wgt")
 
 # Customize link option
