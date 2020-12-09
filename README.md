@@ -14,10 +14,11 @@ Modbus binding support TCP Modbus with format conversion for multi-register type
 ## AGL dependencies:
  * Declare AGL repository: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/2-download-packages.html#install-the-repository)
  * Install AGL controller: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controller.html)
- * Install LibModbus (should be avaliable for most distro) if not install from source
+ * Install LibModbus 
+    + WARNING: Fedora-33 and many distro ship the old 3.0. This bind use the 3.1 !!! 
     + download from https://libmodbus.org/download/
     + cd libmodbus-3.1.6/
-    + ./configure --prefix=/opt/libmodbus-3.1.6
+    + ./configure ./configure --libdir=/usr/local/lib64
     + make && sudo make install-strip
     + Update conf.d/00-????-config.cmake with choose installation directory. ex: set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64/pkgconfig")
 

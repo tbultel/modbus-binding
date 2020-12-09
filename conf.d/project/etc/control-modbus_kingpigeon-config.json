@@ -33,7 +33,7 @@
             "register" : 26,
             "type": "Register_input",
             "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
-            "usage": {"action": "get", "response": "json_array"},
+            "usage": {"action": "read", "response": "json_array"},
             "format" : "plugin://king-pigeon#devinfo",
             "privilege": "special privilege"
           },
@@ -45,8 +45,9 @@
             "register" : 0,
             "privilege": "special privilege",
             "sample": [
-              {"action":"set", "data":"true"},
-              {"action":"get"},
+              {"action":"write", "data":"true"},
+              {"action":"write", "data":"false"},
+              {"action":"read"},
               {"action":"subscribe"}
             ]
           },
@@ -57,8 +58,7 @@
             "format" : "BOOL",
             "register" : 0,
             "sample": [
-              {"action":"set", "data":"true"},
-              {"action":"get"},
+              {"action":"read"},
               {"action":"subscribe"}
             ]
           },
@@ -70,7 +70,7 @@
             "iddle" : 25,
             "register" : 3,
             "sample": [
-              {"action":"set", "data":0},
+              {"action":"write", "data":0},
               {"action":"subscribe"}
             ]
           },

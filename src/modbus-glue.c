@@ -521,10 +521,10 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
                 if (!sensor->usage) {
                     actionsJ= json_object_new_array();
                     if  (sensor->function->writeCB) {
-                        json_object_array_add (actionsJ, json_object_new_string("set"));
+                        json_object_array_add (actionsJ, json_object_new_string("read"));
                     } 
                     if  (sensor->function->readCB) {
-                        json_object_array_add (actionsJ, json_object_new_string("get"));
+                        json_object_array_add (actionsJ, json_object_new_string("write"));
                         json_object_array_add (actionsJ, json_object_new_string("subscribe"));
                         json_object_array_add (actionsJ, json_object_new_string("unsubscribe"));
                     } 

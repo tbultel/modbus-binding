@@ -78,6 +78,8 @@ set (PKG_REQUIRED_LIST
 	libmodbus
 )
 
+# WARNING: default distro modbus is not valid
+list(APPEND PKG_REQUIRED_LIST libmodbus>=3.1.6)
 
 # Print a helper message when every thing is finished
 # ----------------------------------------------------
@@ -156,7 +158,7 @@ set(WIDGET_ENTRY_POINT lib/afb-modbus.so)
 #set(EXTRA_LINK_LIBRARIES)
 
 # Optional force binding installation
-# ------------------------------------libmodbus.so
+# ------------------------------------
 # set(BINDINGS_INSTALL_PREFIX PrefixPath )
 
 # Optional force binding Linking flag

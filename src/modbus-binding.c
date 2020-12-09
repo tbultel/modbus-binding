@@ -85,7 +85,7 @@ static void InfoRtu (afb_req_t request) {
                 if (err <0) {
                     wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);;
                 } else {
-                    wrap_json_pack (&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "connected", err);;
+                    wrap_json_pack (&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "status", err);;
                 }
                 break;
         }
@@ -101,7 +101,7 @@ static void InfoRtu (afb_req_t request) {
         rtusJ= json_object_new_array();
         for (idx=0; rtus[idx].uid; idx++) {
             err= ModbusRtuIsConnected (request->api, &rtus[idx]);
-            wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "online", err>=0);
+            wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "status", err>=0);
         
             ModbusRtuSensorsId (&rtus[idx], 3, &sensorsJ);
 
@@ -109,7 +109,7 @@ static void InfoRtu (afb_req_t request) {
             wrap_json_pack (&usageJ, "{so, si}", "action", actionsJ, "verbose", 3);
             wrap_json_pack (&admincmdJ, "{ss ss ss so}", "uid", "admin", "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", usageJ);
             json_object_array_put_idx (sensorsJ, 0, admincmdJ); // add admin verb before sensors
-            fprintf (stderr, "sensors %s **\n", json_object_get_string(admincmdJ));
+            // fprintf (stderr, "sensors %s **\n", json_object_get_string(admincmdJ));
 
 
             // create group object with rtu_info and rtu-sensors

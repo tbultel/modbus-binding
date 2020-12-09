@@ -5,17 +5,46 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Kingpigeon - gcc build and debug active file",
+      "name": "Kingpigeon - Info HTML5",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/opt/RP/bin/afb-daemon",
+      "program": "/usr/bin/afb-binder",
+      "args": [
+        "--name=afb-modbus_kingpigeon",
+        "--port=1234",
+        "--ldpaths=.",
+        "--workdir=.",
+        "--roothttp=../../../afb-ui-devtool",
+        "--verbose",
+        "--verbose",
+        "--verbose",
+        "--trap-faults=no"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/package",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "miDebuggerPath": "/usr/bin/gdb"
+    },
+    {
+      "name": "Kingpigeon - basic",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/afb-binder",
       "args": [
         "--name=afb-modbus_kingpigeon",
         "--port=1234",
         "--ldpaths=.",
         "--workdir=.",
         "--roothttp=../../htdocs",
-        "--token=",
         "--verbose",
         "--verbose",
         "--verbose",
