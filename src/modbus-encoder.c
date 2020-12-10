@@ -286,7 +286,6 @@ int mbDecodeBoolean (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *d
 
 static int mbEncodeBoolean(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
    
-   fprintf (stderr, "** fulup bool=%s\n", json_object_get_string(sourceJ));
    if (!json_object_is_type (sourceJ, json_type_boolean))  goto OnErrorExit;
    int16_t value = (int16_t)json_object_get_boolean (sourceJ);
 

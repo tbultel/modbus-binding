@@ -495,11 +495,10 @@ OnErrorExit:
     return 1;
 }
 
-void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) {
+void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object *responseJ) {
     json_object *elemJ, *dataJ, *actionsJ;
     ModbusSensorT *sensor;
-    int err;
-    *responseJ= json_object_new_array();
+    int err =0;
 
     // loop on every sensors
     for (int idx=0; rtu->sensors[idx].uid; idx++) {
@@ -507,11 +506,11 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
         switch (verbose) {
             default:
             case 1:
-                err= wrap_json_pack (&elemJ, "{ss ss ss si si}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
+                err += wrap_json_pack (&elemJ, "{ss ss ss si si}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
                      , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count);
                 break;
             case 2:
-                err = (sensor->function->readCB) (sensor, &dataJ);
+                err += (sensor->function->readCB) (sensor, &dataJ);
                 if (err) dataJ=NULL;
                 err= wrap_json_pack (&elemJ, "{ss ss ss si si so}", "uid", sensor->uid, "type", sensor->function->uid, "format", sensor->format->uid
                      , "count", sensor->count, "nbreg", sensor->format->nbreg*sensor->count, "data", dataJ);
@@ -529,14 +528,16 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
                         json_object_array_add (actionsJ, json_object_new_string("unsubscribe"));
                     } 
                     wrap_json_pack (&sensor->usage, "{so ss*}", "action", actionsJ, "data", sensor->format->info);
-                    // fprintf (stderr, "usage %s **\n", json_object_get_string(sensor->usage));
+                } 
 
-                }
+                // make sure it does not get deleted config json object after 1st usage
+                if (sensor->sample) json_object_get (sensor->sample);
+                json_object_get (sensor->usage); 
 
-                err=wrap_json_pack (&elemJ, "{ss ss ss ss* ss* so* so* si*}"
+                err +=wrap_json_pack (&elemJ, "{ss ss ss* ss* ss* so* so* si*}"
                     , "uid",   sensor->uid
-                    , "info",  sensor->info
                     , "verb",  sensor->apiverb
+                    , "info",  sensor->info
                     , "type",  sensor->function->info
                     , "format",sensor->format->uid
                     , "usage", sensor->usage
@@ -545,9 +546,11 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ) 
                     );
                 break;    
         }
-        if (!err) {
-           // fprintf (stderr, "%s **\n", json_object_get_string(elemJ));
-           json_object_array_add (*responseJ, elemJ);
+
+        if (err) {
+           AFB_DEBUG ("ModbusRtuSensorsId: Fail to wrap json RTU sensor info rtu=%s sensor=%s", rtu->uid, sensor->uid);
+        } else {
+           json_object_array_add (responseJ, elemJ);
         }
     }
 }
@@ -608,7 +611,8 @@ void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) 
         
     } else if (!strcasecmp(action, "info")) {
 
-        ModbusRtuSensorsId (rtu, verbose, &responseJ);
+        responseJ=  json_object_new_array();
+        ModbusRtuSensorsId (rtu, verbose, responseJ);
     }
 
     afb_req_success(request, responseJ, NULL);

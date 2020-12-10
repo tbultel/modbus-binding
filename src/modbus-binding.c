@@ -60,16 +60,18 @@ static void PingTest (afb_req_t request) {
 
 static void InfoRtu (afb_req_t request) {
     json_object *elemJ;
-    int err, idx;
+    int err, idx, status;
     int verbose=0;
     ModbusRtuT *rtus = (ModbusRtuT*) afb_req_get_vcbdata(request);
     json_object *queryJ =  afb_req_json(request);
     json_object *responseJ= json_object_new_array();
 
-    err= wrap_json_unpack(queryJ, "{s?i s?i !}", "verbose", &verbose);
-    if (err) {
-        afb_req_fail_f (request, "ModbusRtuAdmin", "ListRtu: invalid 'json' query=%s", json_object_get_string(queryJ));
-        goto OnErrorExit;
+    if (json_object_is_type(queryJ, json_type_object)) {
+        err= wrap_json_unpack(queryJ, "{s?i !}", "verbose", &verbose);
+        if (err) {
+            afb_req_fail_f (request, "ModbusRtuAdmin", "ListRtu: invalid 'json query' query=%s", json_object_get_string(queryJ));
+            goto OnErrorExit;
+        }
     }
 
     // loop on every defined RTU
@@ -81,8 +83,8 @@ static void InfoRtu (afb_req_t request) {
                 wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);
                 break;
             case 2:
-                err= ModbusRtuIsConnected (request->api, &rtus[idx]);
-                if (err <0) {
+                status= ModbusRtuIsConnected (request->api, &rtus[idx]);
+                if (status <0) {
                     wrap_json_pack (&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info);;
                 } else {
                     wrap_json_pack (&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",rtus[idx].uri, "info", rtus[idx].info, "status", err);;
@@ -95,31 +97,39 @@ static void InfoRtu (afb_req_t request) {
         // build global info page for developper dynamic HTML5 page
         json_object *globalJ, *rtuJ, *rtusJ, *statusJ, *sensorsJ, *admincmdJ, *usageJ, *actionsJ;
         CtlConfigT* ctlConfig = (CtlConfigT*)afb_api_get_userdata(afb_req_get_api(request));
-        err=wrap_json_pack (&globalJ, "{ss ss* ss* ss*}", "uid", ctlConfig->uid, "info",ctlConfig->info, "version", ctlConfig->version, "author", ctlConfig->author);
-        fprintf (stderr, "uid=%s %s **\n", ctlConfig->uid, json_object_get_string(globalJ));
+        err= wrap_json_pack (&globalJ, "{ss ss* ss* ss*}", "uid", ctlConfig->uid, "info",ctlConfig->info, "version", ctlConfig->version, "author", ctlConfig->author);
+        if (err) {
+            AFB_DEBUG ("InfoRtu: Fail to wrap json binding metadata");
+            goto OnErrorExit;
+        }
 
         rtusJ= json_object_new_array();
         for (idx=0; rtus[idx].uid; idx++) {
-            err= ModbusRtuIsConnected (request->api, &rtus[idx]);
-            wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "status", err>=0);
-        
-            ModbusRtuSensorsId (&rtus[idx], 3, &sensorsJ);
+            status= ModbusRtuIsConnected (request->api, &rtus[idx]);
+            err= wrap_json_pack (&statusJ, "{ss si sb}", "uri",rtus[idx].uri, "slaveid", rtus[idx].slaveid, "status", status>=0);
 
-            wrap_json_pack (&actionsJ, "[s s s]", "info", "connect", "disconnect");
-            wrap_json_pack (&usageJ, "{so, si}", "action", actionsJ, "verbose", 3);
-            wrap_json_pack (&admincmdJ, "{ss ss ss so}", "uid", "admin", "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", usageJ);
-            json_object_array_put_idx (sensorsJ, 0, admincmdJ); // add admin verb before sensors
-            // fprintf (stderr, "sensors %s **\n", json_object_get_string(admincmdJ));
-
+            // prepare array to hold every sensor verbs
+            sensorsJ=  json_object_new_array();
+            err += wrap_json_pack (&actionsJ, "[s s s]", "info", "connect", "disconnect");
+            err += wrap_json_pack (&usageJ, "{so, si}", "action", actionsJ, "verbose", 3);
+            err += wrap_json_pack (&admincmdJ, "{ss ss ss so}", "uid", "admin", "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", usageJ);
+            json_object_array_add (sensorsJ, admincmdJ); 
 
             // create group object with rtu_info and rtu-sensors
-            wrap_json_pack (&rtuJ, "{ss ss* so* so}", "uid", rtus[idx].uid, "info", rtus[idx].info, "status", statusJ, "verbs", sensorsJ);
-            json_object_array_add(rtusJ, rtuJ); 
-            //fprintf (stderr, "sensors %s **\n", json_object_get_string(sensorsJ));
+            ModbusRtuSensorsId (&rtus[idx], 3, sensorsJ);
+            err += wrap_json_pack (&rtuJ, "{ss ss* so* so}", "uid", rtus[idx].uid, "info", rtus[idx].info, "status", statusJ, "verbs", sensorsJ);
+            if (err) {
+                AFB_DEBUG ("InfoRtu: Fail to wrap json sensors info rtu=%s", rtus[idx].uid);
+                goto OnErrorExit;
+            }
+            json_object_array_add(rtusJ, rtuJ);      
         }
 
-        //fprintf (stderr, "rtus %s **\n", json_object_get_string(rtusJ));
-        wrap_json_pack (&responseJ, "{so so}", "metadata", globalJ, "groups", rtusJ); 
+        err= wrap_json_pack (&responseJ, "{so so}", "metadata", globalJ, "groups", rtusJ); 
+        if (err) {
+            AFB_DEBUG ("InfoRtu: Fail to wrap json binding global response");
+            goto OnErrorExit;
+        }
     }
     afb_req_success(request, responseJ, NULL);
     return;
@@ -194,6 +204,10 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
                 "sample", &sensor->sample,
                 "args", &argsJ);
     if (err) goto ParsingErrorExit;
+
+    // keep sample and usage as object when defined
+    if (sensor->usage) json_object_get (sensor->usage);
+    if (sensor->sample) json_object_get (sensor->sample);
 
     // find modbus register type/function callback
     sensor->function = mbFunctionFind (api, type);

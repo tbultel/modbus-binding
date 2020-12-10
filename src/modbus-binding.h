@@ -133,7 +133,7 @@ void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ);
 int ModbusRtuConnect (afb_api_t api, ModbusRtuT *rtu);
 int ModbusRtuIsConnected (afb_api_t api, ModbusRtuT *rtu);
 ModbusFunctionCbT * mbFunctionFind (afb_api_t api, const char *uri);
-void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object **responseJ);
+void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object *responseJ);
 
 // modbus-encoder.c
 ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) ;

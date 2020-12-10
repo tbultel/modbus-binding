@@ -31,7 +31,7 @@ Modbus binding support TCP Modbus with format conversion for multi-register type
 
 By default Kingpigeon devices use a fix IP addr (192.168.1.110). You may need to add this network to your own desktop config before starting your test.
 ```
-sudo ip a add  192.168.1.1/24 dev eth0 # eth0 or whatever is your ethernet card name
+sudo ip a add  192.168.1.1/24 dev eth0 # eth0, enp0s20f0u4u1 or whatever is your ethernet card name
 ping 192.168.1.110 # check you can ping your TCP modbus device
 check default config with browser at http://192.168.1.110
 ```
@@ -40,6 +40,17 @@ check default config with browser at http://192.168.1.110
 ```
 afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --verbose
 open binding UI with browser at localhost:1234
+```
+
+### Test Binder in CLI
+```
+afb-client -H ws://localhost:1234/api
+ # modbus ping
+ # modbus info
+ # modbus RTU0/D01_SWITCH {"action":"write","data":true}
+ # modbus RTU0/D01_SWITCH {"action":"read"}
+ # modbus RTU0/D01_SWITCH {"action":"write","data":false}
+ # modbus RTU0/D01_SWITCH {"action":"read"}
 ```
 
 ### Adding your own config
