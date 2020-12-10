@@ -1,13 +1,13 @@
 [Unit]
-Description=Agl modbus service
+Description=Redpesk modbus service
 
 [Service]
 Type=simple
 ExecStartPre=mkdir -p /run/user/%U/apis/ws
-ExecStart=/opt/AGL/bin/afb-daemon \
+ExecStart=/usr/bin/afb-binder \
 	--name=afb-modbus \
 	--port=12345 \
-	--workdir=/usr/share/agl-service-modbus \
+	--workdir=/usr/share/modbus-binding \
 	--ldpaths=. \
     --roothttp=. \
     --token= \
