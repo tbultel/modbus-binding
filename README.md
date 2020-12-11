@@ -2,27 +2,41 @@
 
 Modbus binding support TCP Modbus with format conversion for multi-register type as int32, Float, ...
 
-## Dependencies:
- * AGL application framework 'afb-binder'
- * AGL binding 'afb-binding-devel'
- * AGL controller 'afb-libcontroller-devel'
- * AGL helpers 'afb-libhelpers-devel'
- * AGL cmake template 'afb-cmake-modules'
- * Libmodbus
- * Lua
+## Install from RPM/APT:
 
-## AGL dependencies:
- * Declare AGL repository: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/2-download-packages.html#install-the-repository)
- * Install AGL controller: [(see doc)](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controller.html)
+ * Declare redpesk repository: [(see doc)](http://docs.redpesk.bzh/docs/en/master/developer-guides/host-configuration/docs/2-download-packages.html)
+
+ * Redpesk: sudo dnf install modbus-binding afb-ui-devtools 
+ * Fedora: sudo dnf install modbus-binding afb-ui-devtools 
+ * OpenSuse: sudo dnf install modbus-binding afb-ui-devtools 
+ * Ubuntu: sudo apt-get install modbus-binding afb-ui-devtools 
+
+## Rebuilding from source
+
+### Modbus Dependencies:
+* Declare redpesk repository: [(see doc)](http://docs.redpesk.bzh/docs/en/master/developer-guides/host-configuration/docs/2-download-packages.html)
+
+* From redpesk-core 
+    * application framework 'afb-binder' & 'afb-binding-devel'
+    * binding controller 'afb-libcontroller-devel'
+    * binding helpers 'afb-libhelpers-devel'
+    * cmake template 'afb-cmake-modules'
+    * ui-devel html5 'afb-ui-devtools'
+ * From your preferred Linux distribution
+    * Libmodbus 3.1.6
+    * Lua
+
+ 
  * Install LibModbus 
     + WARNING: Fedora-33 and many distro ship the old 3.0. This bind use the 3.1 !!! 
     + download from https://libmodbus.org/download/
-    + cd libmodbus-3.1.6/
-    + ./configure ./configure --libdir=/usr/local/lib64
+    + wget https://libmodbus.org/releases/libmodbus-3.1.6.tar.gz
+    + tar -xzf libmodbus-3.1.6.tar.gz && cd libmodbus-3.1.6/
+    + ./configure --libdir=/usr/local/lib64
     + make && sudo make install-strip
     + Update conf.d/00-????-config.cmake with choose installation directory. ex: set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64/pkgconfig")
 
-## Modbus Binding build
+ ### Modbus Binding build
     * mkdir build && cd build
     * cmake ..
     * make
@@ -38,8 +52,8 @@ check default config with browser at http://192.168.1.110
 
 ### Start Sample Binder
 ```
-afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --verbose
-open binding UI with browser at localhost:1234
+afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --verbose
+open binding UI with browser at http://localhost:1234/devtools
 ```
 
 ### Test Binder in CLI
@@ -47,9 +61,9 @@ open binding UI with browser at localhost:1234
 afb-client -H ws://localhost:1234/api
  # modbus ping
  # modbus info
- # modbus RTU0/D01_SWITCH {"action":"write","data":true}
+ # modbus RTU0/D01_SWITCH {"action":"write","data":1}
  # modbus RTU0/D01_SWITCH {"action":"read"}
- # modbus RTU0/D01_SWITCH {"action":"write","data":false}
+ # modbus RTU0/D01_SWITCH {"action":"write","data":0}
  # modbus RTU0/D01_SWITCH {"action":"read"}
 ```
 
@@ -57,14 +71,16 @@ afb-client -H ws://localhost:1234/api
 
 Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is use to select a specific config. As example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
 
-You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environement variable. For further information, check AGL controller documentation [here](https://docs.automotivelinux.org/docs/en/guppy/devguides/reference/ctrler/controllerConfig.html)
+You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environement variable. For further information, check binding controller documentation [here](http://docs.redpesk.bzh/docs/en/master/developer-guides/controllerConfig.html)
 
 **Warning:** some TCP Modbus device as KingPigeon check SalveID even for buildin I/O. Generic config make the assumption that your slaveID is set to *'1'*. 
 
  
 ```
-export CONTROL_CONFIG_PATH="$HOME/my-agl-config"
-afb-binder --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --roothttp=../htdocs --verbose
+export CONTROL_CONFIG_PATH="$HOME/my-modbus-config-directory"
+afb-binder --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --verbose
+
+# connect with your browser on http://localhost:1234/devtools/index.html
 ```
 
 
@@ -146,7 +162,7 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
 
 ### Format Converter
 
-The AGL Modbus support both builtin format converter and optional custom converter provided by user through plugins.
+The Modbus binding supports both builtin format converter and optional custom converter provided by user through plugins.
 
   * Standard converter include the traditional INT16, UINT16, INT32, UINT32, FLOATABCD, ... Depending on the format one or more register is read
   * Custom converter are provided through optional plugins. Custom converter should declare a static structure and register it at plugin loadtime(CTLP_ONLOAD). 

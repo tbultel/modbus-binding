@@ -86,7 +86,7 @@ list(APPEND PKG_REQUIRED_LIST libmodbus>=3.1.6)
 if(IS_DIRECTORY $ENV{HOME}/opt/afb-monitoring)
 set(MONITORING_ALIAS "--alias=/monitoring:$ENV{HOME}/opt/afb-monitoring")
 endif()
-set(CLOSING_MESSAGE "Debug from buildir: afb-binder --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. --roothttp=../../htdocs -vvv")
+set( CLOSING_MESSAGE "Debug: afb-binder --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. -vvv # http://localhost:1234/devtools/index.html")
 set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install ${PROJECT_NAME}.wgt")
 
 # Customize link option
