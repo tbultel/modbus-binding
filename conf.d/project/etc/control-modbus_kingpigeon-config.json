@@ -45,8 +45,8 @@
             "register" : 0,
             "privilege": "special privilege",
             "sample": [
-              {"action":"write", "data":"true"},
-              {"action":"write", "data":"false"},
+              {"action":"write", "data":true},
+              {"action":"write", "data":false},
               {"action":"read"},
               {"action":"subscribe"}
             ]
