@@ -37,7 +37,7 @@
       "name": "Raymarine anemometer - gcc build and debug active file",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/opt/RP/bin/afb-daemon",
+      "program": "afb-binder",
       "args": [
         "--name=afb-modbus_raymarine-anemometer",
         "--port=1234",
