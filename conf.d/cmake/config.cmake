@@ -20,7 +20,7 @@ set(CMAKE_INSTALL_SO_NO_EXE 0)
 
 # Project Info
 # ------------------
-set(PROJECT_NAME agl-service-modbus)
+set(PROJECT_NAME modbus-binding)
 set(PROJECT_VERSION "1.0")
 set(PROJECT_PRETTY_NAME "Helloworld for AGL")
 set(PROJECT_DESCRIPTION "Provide an AGL Helloworld Binding")
@@ -73,8 +73,8 @@ set (gcc_minimal_version 4.9)
 set (PKG_REQUIRED_LIST
 	json-c
 	afb-binding
-	afb-helpers
-	appcontroller
+	afb-libhelpers
+	afb-libcontroller
 	libmodbus
 )
 
