@@ -5,5 +5,5 @@ Modbus binding support TCP Modbus with format conversion for multi-register type
 ![Modbus binding architecture](assets/modbus_binding_archi.png)
 
 * [Installation Guide](./2-installation_guide.html)
-* [Running and Testing](./3-running_and_testing.html)
-* [Configuration](./4-configuration.html)
+* [Running and Testing](./3-configuration.html)
+* [Configuration](./4-running_and_testing.html)
