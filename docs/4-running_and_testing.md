@@ -1,6 +1,6 @@
 # Running/Testing
 
-By default Kingpigeon devices use a fix IP addr (192.168.1.110). You may need to add this network to your own desktop config before starting your test. Check hardware documentation on [Device Store / King Pigeon](../../redpesk-marine/devices-store/docs/devices-store/king-pigeon.html)
+By default Kingpigeon devices uses a fix IP addr (192.168.1.110). You may need to add this network to your own desktop config before starting your test. Check hardware documentation on [Device Store / King Pigeon](../../redpesk-marine/devices-store/docs/devices-store/king-pigeon.html)
 
 ``` bash
 sudo ip a add  192.168.1.1/24 dev eth0 # eth0, enp0s20f0u4u1 or whatever is your ethernet card name
@@ -22,8 +22,8 @@ open binding UI with browser at `http://localhost:1234/devtools`
 
 ``` bash
 afb-client --human ws://localhost:1234/api
-# you can now send requests with the foloing sintax : <api> <verb> [eventual data in json format]
-# heare some available example for modbus binding :
+# you can now send requests with the following syntax : <api> <verb> [eventual data in json format]
+# here are some available examples for modbus binding :
 modbus ping
 modbus info
 modbus RTU0/D01_SWITCH {"action":"write","data":1}
@@ -34,7 +34,7 @@ modbus RTU0/D01_SWITCH {"action":"read"}
 
 ## Adding your own config
 
-Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is use to select a specific config. As example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
+Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is used to select a specific config. For example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
 
 You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environnement variable. For further information, check binding controller documentation [here](../../developer-guides/controllerConfig.html)
 

@@ -1,18 +1,17 @@
-
 # Configuration
 
-## Modbus binding support a set of default encoder for values store within multiple registries
+## Modbus binding supports a set of default encoders for values store within multiple registries
 
 * int16, bool => 1 register 
 * int32 => 2 registers
 * int64 => 4 registers
 * float, floatabcd, floatdabc, ...
 
-Nevertheless user may also add its own encoding/decoding format to handle device specific representation (ex: device info string),or custom application encoding (ex: float to uint16 for an analog output). Custom encoder/decoder are store within user plugin (see sample at src/plugins/kingpigeon).
+Nevertheless user may also add its own encoding/decoding format to handle device specific representation (ex: device info string),or custom application encoding (ex: float to uint16 for an analog output). Custom encoder/decoder are stored within user plugin (see sample at src/plugins/kingpigeon).
 
 ## API usage
 
-Modbus binding create one api/verb by sensor. By default each sensor api/verb is prefixed by the RTU uid. With following config mak
+Modbus binding creates one api/verb by sensor. By default each sensor api/verb is prefixed by the RTU uid. With following config mak
 
 ```json
 "modbus": [
@@ -73,7 +72,7 @@ Modbus binding create one api/verb by sensor. By default each sensor api/verb is
 * api://modbus/myrtu/din01_counter
 * etc ...
 
-### For each sensors the API accept 3 actions
+### For each sensor the API accepts 3 actions
 
 * action=read (return register(s) value after format decoding)
 * action=write (push value on register(s) after format encoding)
@@ -87,9 +86,9 @@ The Modbus binding supports both builtin format converter and optional custom co
 
 * Custom converter are provided through optional plugins. Custom converter should declare a static structure and register it at plugin loadtime(CTLP_ONLOAD).
 
-  * uid is the formatter name as declare inside JSON config file.
+  * uid is the formatter name as declared inside JSON config file.
   * decode/encore callback are respectively called for read/write action
-  * init callback is call at format registration time and might be used to process a special value for a given sensor (e.g; deviation for a wind sensor). Each sensor attaches a void* context. Developer may declare a private context for each sensor (e.g. to store a previous value, a min/max, ...). The init callback receive sensor source to store context and optionally the ARGS json object when present within sensor json config.
+  * init callback is called at format registration time and might be used to process a special value for a given sensor (e.g; deviation for a wind sensor). Each sensor attaches a void* context. Developer may declare a private context for each sensor (e.g. to store a previous value, a min/max, ...). The init callback receive sensor source to store context and optionally the ARGS json object when present within sensor json config.
 
 * WARNING: do not confuse format count and nbreg. NBreg is the number of 16bits registers use for a given formatter (e.g. 4 for a 64bits float). Count is the number of value you want to read in one operation (e.g. you may want to read all your digital input in one operation and receive them as an array of boolean)
 

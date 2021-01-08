@@ -27,7 +27,7 @@
 
 #### Install LibModbus
 
-WARNING: Fedora-33 and many distro ship the old 3.0. This bind use the 3.1 !!!
+WARNING: Fedora-33 and many distros ship the old 3.0. This bind uses the 3.1 !!!
 
 ```bash
 # download from https://libmodbus.org/download/
@@ -37,7 +37,7 @@ tar -xzf libmodbus-3.1.6.tar.gz && cd libmodbus-3.1.6/
 make && sudo make install-strip
 ```
 
-Update conf.d/00-????-config.cmake with choose installation directory. ex: set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64 pkgconfig")
+Update conf.d/00-????-config.cmake with chosen installation directory. ex: set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64 pkgconfig")
 
 ### Modbus Binding build
 
