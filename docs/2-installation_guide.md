@@ -6,7 +6,7 @@
 
 * Redpesk: `sudo dnf install modbus-binding afb-ui-devtools`
 * Fedora: `sudo dnf install modbus-binding afb-ui-devtools`
-* OpenSuse: `sudo dnf install modbus-binding afb-ui-devtools`
+* OpenSuse: `sudo zipper install modbus-binding afb-ui-devtools`
 * Ubuntu: `sudo apt-get install modbus-binding afb-ui-devtools`
 
 ## Rebuilding from source
@@ -42,6 +42,7 @@ Update conf.d/00-????-config.cmake with chosen installation directory. ex: set(E
 ### Modbus Binding build
 
 ```bash
+git clone https://github.com/redpesk-industrial/modbus-binding.git
 mkdir build && cd build
 cmake ..
 make

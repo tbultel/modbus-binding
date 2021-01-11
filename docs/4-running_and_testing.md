@@ -14,7 +14,7 @@ check default config with browser at http://192.168.1.110
 afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --verbose
 ```
 
-open binding UI with browser at `http://localhost:1234/devtools`
+open binding UI with browser at `http://localhost:1234/devtools/index.html`
 
 ![afb-ui-devtool modbus Screenshot](assets/afb-ui-devtool_modbus_Screenshot.png)
 
