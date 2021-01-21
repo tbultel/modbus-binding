@@ -2,7 +2,7 @@
 
 ## Install from RPM/APT
 
-* Declare redpesk repository: [(see doc)](../../developer-guides/host-configuration/docs/1-Setup-your-build-host.html)
+* Declare redpesk repository: [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %})
 
 * Redpesk: `sudo dnf install modbus-binding afb-ui-devtools`
 * Fedora: `sudo dnf install modbus-binding afb-ui-devtools`
@@ -13,7 +13,7 @@
 
 ### Modbus binding Dependencies
 
-* Declare redpesk repository: [(see doc)](../../developer-guides/host-configuration/docs/1-Setup-your-build-host.html)
+* Declare redpesk repository: [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %})
 
 * From redpesk repos
   * application framework 'afb-binder' & 'afb-binding-devel'

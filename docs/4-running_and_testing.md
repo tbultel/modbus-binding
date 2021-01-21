@@ -1,6 +1,6 @@
 # Running/Testing
 
-By default Kingpigeon devices uses a fix IP addr (192.168.1.110). You may need to add this network to your own desktop config before starting your test. Check hardware documentation on [Device Store / King Pigeon](../../redpesk-marine/devices-store/docs/devices-store/king-pigeon.html)
+By default Kingpigeon devices uses a fix IP addr (192.168.1.110). You may need to add this network to your own desktop config before starting your test. Check hardware documentation on [Device Store / King Pigeon]({% chapter_link devices-store-doc.king-pigeon %})
 
 ``` bash
 sudo ip a add  192.168.1.1/24 dev eth0 # eth0, enp0s20f0u4u1 or whatever is your ethernet card name
@@ -36,7 +36,7 @@ modbus RTU0/D01_SWITCH {"action":"read"}
 
 Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is used to select a specific config. For example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
 
-You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environnement variable. For further information, check binding controller documentation [here](../../developer-guides/controllerConfig.html)
+You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environnement variable. For further information, check binding controller documentation [here]({% chapter_link libappcontroller-guides.controller-configuration %})
 
 **Warning:** some TCP Modbus device as KingPigeon check SalveID even for building I/O. Generic config make the assumption that your slaveID is set to *'1'*.
 
