@@ -4,7 +4,7 @@
 
 * Declare redpesk repository: [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %})
 
-* Redpesk: `sudo dnf install modbus-binding afb-ui-devtools`
+* redpesk: `sudo dnf install modbus-binding afb-ui-devtools`
 * Fedora: `sudo dnf install modbus-binding afb-ui-devtools`
 * OpenSuse: `sudo zipper install modbus-binding afb-ui-devtools`
 * Ubuntu: `sudo apt-get install modbus-binding afb-ui-devtools`
