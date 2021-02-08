@@ -1,0 +1,48 @@
+{
+    "$schema": "http://iot.bzh/download/public/schema/json/ctl-schema.json",
+    "metadata": {
+      "uid": "modbus-svc",
+      "version": "1.0",
+      "api": "modbus",
+      "info": "Seanatic bench 10.18.2.40:503 slaveid=1 Test Config"
+    },
+    "plugins": [
+      {
+        "uid": "seanatic-bench",
+        "info": "Plugin to handle user custom registry encoding/decoding",
+        "spath": "package/lib/:./lib/plugins:./var",
+        "libs": [
+          "seanatic-bench.ctlso"
+        ]
+      }
+    ],
+    "modbus": [
+      {
+        "uid": "Siemens 1510SP",
+        "info": "Siemens 1510SP Profinet/Modbus",
+        "uri" : "tcp://192.168.0.1:503",
+        "slaveid": 1,
+        "timeout": 250,
+        "autostart" : 1,
+        "prefix": "1510SP",
+        "privilege": "global privilege",
+        "sensors": [
+
+          {
+            "uid": "ana",
+            "type":  "REGISTER_HOLDING",
+            "format" : "INT16",
+            "register" : 0,
+            "count" : 8
+          },
+          {
+            "uid": "dig",
+            "type":  "REGISTER_HOLDING",
+            "format" : "INT16",
+            "register" : 8,
+            "count" : 8
+          }
+       ]
+      }
+    ]
+}
